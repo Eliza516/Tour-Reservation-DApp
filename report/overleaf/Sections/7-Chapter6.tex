@@ -39,17 +39,14 @@ Các script trong \code{package.json}:
 
 \begin{lstlisting}[style=ShellStyle, caption={Cài đặt và chạy frontend}]
 cd frontend
-npm install          # cai React, Vite va cac thu vien khac
-npm install web3     # cai web3.js (thu vien ket noi MetaMask / hop dong)
+npm install          # cai React, Vite, web3.js va cac thu vien khac
 npm run dev          # chay may chu phat trien tai http://localhost:5173
 \end{lstlisting}
 
-\begin{warnbox}
-\textbf{Lưu ý về thư viện web3.js.} Mã nguồn có \code{import Web3 from "web3"}; do đó web3.js phải có trong
-\code{dependencies}. Nếu \code{package.json} chưa khai báo, cần chạy \code{npm install web3} (lệnh này tự thêm vào
-\code{package.json} và \code{package-lock.json}) trước khi chạy \code{npm run dev}, nếu không Vite sẽ báo lỗi
-không phân giải được module \code{web3}.
-\end{warnbox}
+\begin{infobox}
+\textbf{Thư viện web3.js.} Mã nguồn có \code{import Web3 from "web3"}, vì vậy web3.js được khai báo trong \code{dependencies}
+của \code{package.json} (\code{"web3": "\^{}4.16.0"}). Lệnh \code{npm install} sẽ cài thư viện này cùng React và Vite.
+\end{infobox}
 
 Sau khi mở \code{http://localhost:5173}, người dùng nhấn \emph{Kết nối MetaMask}; chế độ On-Chain tự bật vì \code{CONTRACT\_ADDRESS}
 đã được khai báo.
