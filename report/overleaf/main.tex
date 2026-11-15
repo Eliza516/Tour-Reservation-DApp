@@ -1,0 +1,153 @@
+\documentclass[a4paper]{article}
+\usepackage{neu}
+
+\usepackage[numbers,sort&compress]{natbib}
+
+\usepackage{lmodern}          % phông chữ hỗ trợ tiếng Việt (T5)
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{listingsutf8}     % đọc file mã nguồn UTF-8 (có chú thích tiếng Việt)
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{array}
+\usepackage{colortbl}
+\usepackage{tabularx}
+\usepackage{makecell}
+\usepackage{mdframed}
+\usepackage{multirow}
+\usetikzlibrary{positioning,fit}
+\hypersetup{unicode=true}
+
+% ---------- Màu sắc ----------
+\definecolor{navyblue}{RGB}{13,33,55}
+\definecolor{azureblue}{RGB}{21,101,192}
+\definecolor{burntsienna}{RGB}{230,81,0}
+\definecolor{steelgrey}{RGB}{55,71,79}
+\definecolor{lightice}{RGB}{227,242,253}
+\definecolor{lightgreen}{RGB}{232,245,233}
+\definecolor{lightred}{RGB}{255,235,238}
+\definecolor{darkgreen}{RGB}{46,125,50}
+\definecolor{darkred}{RGB}{183,28,28}
+\definecolor{codebg}{RGB}{248,249,250}
+\definecolor{codegreen}{RGB}{27,94,32}
+\definecolor{codepurple}{RGB}{74,20,140}
+\definecolor{rowgray}{RGB}{245,248,252}
+
+% ---------- Ngôn ngữ cho listings ----------
+\lstdefinelanguage{Solidity}{
+  morekeywords={pragma,solidity,contract,function,external,public,private,internal,
+    view,pure,payable,returns,return,mapping,address,uint256,uint,bool,string,
+    modifier,constructor,require,emit,event,indexed,msg,true,false,if,else},
+  sensitive=true,
+  morecomment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  morestring=[b]"
+}
+\lstdefinelanguage{JS}{
+  morekeywords={import,from,export,const,let,var,function,async,await,return,if,else,
+    new,throw,try,catch,finally,typeof,null,true,false,default},
+  sensitive=true,
+  morecomment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  morestring=[b]",
+  morestring=[b]'
+}
+\lstdefinestyle{SolStyle}{
+  language=Solidity,
+  backgroundcolor=\color{codebg},
+  commentstyle=\color{codegreen}\itshape,
+  keywordstyle=\color{azureblue}\bfseries,
+  stringstyle=\color{codepurple},
+  numberstyle=\tiny\color{steelgrey},
+  basicstyle=\ttfamily\footnotesize,
+  breaklines=true, keepspaces=true, showstringspaces=false,
+  numbers=left, numbersep=6pt, tabsize=2,
+  frame=single, rulecolor=\color{steelgrey!40}, captionpos=b
+}
+\lstdefinestyle{JSStyle}{
+  language=JS,
+  backgroundcolor=\color{codebg},
+  commentstyle=\color{codegreen}\itshape,
+  keywordstyle=\color{azureblue}\bfseries,
+  stringstyle=\color{codepurple},
+  numberstyle=\tiny\color{steelgrey},
+  basicstyle=\ttfamily\footnotesize,
+  breaklines=true, keepspaces=true, showstringspaces=false,
+  numbers=left, numbersep=6pt, tabsize=2,
+  frame=single, rulecolor=\color{steelgrey!40}, captionpos=b
+}
+\lstdefinestyle{ShellStyle}{
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\footnotesize,
+  breaklines=true, keepspaces=true, showstringspaces=false,
+  frame=single, rulecolor=\color{steelgrey!40}, captionpos=b
+}
+
+% ---------- Hộp thông tin ----------
+\newmdenv[linecolor=azureblue,backgroundcolor=lightice,linewidth=1pt,
+  innertopmargin=6pt,innerbottommargin=6pt,
+  innerleftmargin=10pt,innerrightmargin=10pt]{infobox}
+\newmdenv[linecolor=darkgreen,backgroundcolor=lightgreen,linewidth=1pt,
+  innertopmargin=6pt,innerbottommargin=6pt,
+  innerleftmargin=10pt,innerrightmargin=10pt]{successbox}
+\newmdenv[linecolor=darkred,backgroundcolor=lightred,linewidth=1pt,
+  innertopmargin=6pt,innerbottommargin=6pt,
+  innerleftmargin=10pt,innerrightmargin=10pt]{warnbox}
+
+% ---------- Macro tiện ích ----------
+% Chỗ cần bổ sung thông tin cá nhân: hiện chữ đỏ để dễ tìm
+\newcommand{\todo}[1]{\textcolor{red}{\textbf{[#1]}}}
+% Chèn ảnh chụp màn hình: \shot{tên-file}{chú thích}{độ rộng tương đối}
+\newcommand{\shot}[3]{%
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=#3\linewidth]{Images/#1}
+    \caption{#2}\label{fig:#1}
+  \end{figure}}
+\newcommand{\code}[1]{\texttt{#1}}
+
+% ---------- Tên gọi tiếng Việt ----------
+\renewcommand{\thesection}{Chương \arabic{section}}
+\renewcommand{\thesubsection}{\arabic{section}.\arabic{subsection}}
+\renewcommand{\thesubsubsection}{\thesubsection.\arabic{subsubsection}}
+% Mục lục: chừa đủ chỗ cho nhãn "Chương N"
+\makeatletter
+\renewcommand*\l@section{\@dottedtocline{1}{0em}{5.4em}}
+\makeatother
+\AtBeginDocument{%
+  \renewcommand*\contentsname{Mục lục}%
+  \renewcommand*\refname{Tài liệu tham khảo}%
+  \renewcommand*\figurename{Hình}%
+  \renewcommand*\tablename{Bảng}%
+  \renewcommand*\lstlistingname{Đoạn mã}%
+  \renewcommand*\listfigurename{Danh sách hình}%
+}
+
+% ---------- Chân trang ----------
+\fancyfoot[L]{\scriptsize \ttfamily Báo cáo Đề 36 --- Tour Reservation DApp}
+\fancyfoot[R]{\scriptsize \ttfamily Trang {\thepage}/\pageref{LastPage}}
+
+\thesislayout
+\setlength{\parskip}{4pt}
+\renewcommand{\arraystretch}{1.25}
+
+\begin{document}
+
+\include{Sections/1-Title}
+\include{Sections/2-Chapter1}
+\include{Sections/3-Chapter2}
+\include{Sections/4-Chapter3}
+\include{Sections/5-Chapter4}
+\include{Sections/6-Chapter5}
+\include{Sections/7-Chapter6}
+\include{Sections/8-Chapter7}
+\include{Sections/9-Chapter8}
+\include{Sections/10-Appendix}
+
+\nocite{*}
+\bibliographystyle{unsrtnat}
+\bibliography{main}
+\end{document}

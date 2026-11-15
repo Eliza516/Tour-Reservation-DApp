@@ -1,0 +1,124 @@
+\section{Môi trường chạy (Node.js) \& Mạng Blockchain}
+\label{sec:ch6}
+
+\subsection{Vai trò của Node.js, npm và Vite ở tầng client}
+
+Smart contract chạy trên blockchain, còn giao diện chạy trên \emph{trình duyệt} của người dùng. Node.js không phải là máy chủ
+của ứng dụng; nó chỉ là \textbf{công cụ phát triển} ở máy lập trình viên:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{Node.js (v24.11.0):} môi trường chạy JavaScript ngoài trình duyệt, dùng để chạy Vite và các công cụ build.
+    \item \textbf{npm (11.6.1):} trình quản lý gói, cài các thư viện khai báo trong \code{package.json} (React, Vite, web3.js, \dots).
+    \item \textbf{Vite:} máy chủ phát triển và công cụ đóng gói. Lệnh \code{npm run dev} khởi động Vite, biên dịch JSX và phục vụ giao diện
+          tại \code{http://localhost:5173} với cơ chế nạp nóng (hot reload).
+\end{itemize}
+
+Các script trong \code{package.json}:
+
+\begin{table}[H]
+\centering
+\caption{Các script npm của dự án frontend}
+\begin{tabularx}{\linewidth}{|l|l|X|}
+\hline
+\rowcolor{navyblue}\textcolor{white}{\textbf{Lệnh}} & \textcolor{white}{\textbf{Thực thi}} & \textcolor{white}{\textbf{Tác dụng}} \\
+\hline
+\code{npm run dev}     & \code{vite}         & Chạy máy chủ phát triển (localhost:5173). \\
+\hline
+\rowcolor{rowgray}
+\code{npm run build}   & \code{vite build}   & Đóng gói bản sản phẩm vào thư mục \code{dist/}. \\
+\hline
+\code{npm run preview} & \code{vite preview} & Chạy thử bản đã build. \\
+\hline
+\rowcolor{rowgray}
+\code{npm run lint}    & \code{oxlint}       & Kiểm tra lỗi mã nguồn. \\
+\hline
+\end{tabularx}
+\end{table}
+
+\subsubsection{Các bước chạy giao diện}
+
+\begin{lstlisting}[style=ShellStyle, caption={Cài đặt và chạy frontend}]
+cd frontend
+npm install          # cai React, Vite va cac thu vien khac
+npm install web3     # cai web3.js (thu vien ket noi MetaMask / hop dong)
+npm run dev          # chay may chu phat trien tai http://localhost:5173
+\end{lstlisting}
+
+\begin{warnbox}
+\textbf{Lưu ý về thư viện web3.js.} Mã nguồn có \code{import Web3 from "web3"}; do đó web3.js phải có trong
+\code{dependencies}. Nếu \code{package.json} chưa khai báo, cần chạy \code{npm install web3} (lệnh này tự thêm vào
+\code{package.json} và \code{package-lock.json}) trước khi chạy \code{npm run dev}, nếu không Vite sẽ báo lỗi
+không phân giải được module \code{web3}.
+\end{warnbox}
+
+Sau khi mở \code{http://localhost:5173}, người dùng nhấn \emph{Kết nối MetaMask}; chế độ On-Chain tự bật vì \code{CONTRACT\_ADDRESS}
+đã được khai báo.
+
+\subsection{Mạng blockchain triển khai: Ethereum Sepolia Testnet}
+
+Hợp đồng được triển khai trên \textbf{Sepolia Testnet} (chainId \code{11155111}) --- mạng thử nghiệm công khai của Ethereum.
+Lựa chọn này so với các phương án khác:
+
+\begin{table}[H]
+\centering
+\caption{So sánh các môi trường triển khai}
+\begin{tabularx}{\linewidth}{|l|X|X|}
+\hline
+\rowcolor{navyblue}\textcolor{white}{\textbf{Môi trường}} & \textcolor{white}{\textbf{Ưu điểm}} & \textcolor{white}{\textbf{Hạn chế}} \\
+\hline
+Remix VM / Localhost (Hardhat, Ganache) & Nhanh, ETH vô hạn, không cần faucet. & Chỉ chạy cục bộ; không công khai, không xem được trên Etherscan. \\
+\hline
+\rowcolor{rowgray}
+\textbf{Sepolia Testnet (đã dùng)} & Công khai, gần giống mạng thật, có Etherscan, ETH test miễn phí. & Cần xin ETH test từ faucet (số lượng hạn chế); mỗi giao dịch chờ khoảng 12 giây. \\
+\hline
+Ethereum Mainnet & Môi trường thật. & ETH có giá trị thật, không phù hợp để học tập/thử nghiệm. \\
+\hline
+\end{tabularx}
+\end{table}
+
+ETH test được lấy từ \emph{Sepolia faucet} (tab ``Ethereum Sepolia Faucet'' xuất hiện trong các ảnh chụp). Vì lượng ETH nhận được mỗi lần
+khá nhỏ, một số kịch bản kiểm thử dùng giá vé 0,0001 ETH (xem \ref{sec:ch7}).
+
+\subsection{MetaMask ký giao dịch và trả phí gas}
+
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{Hàm đọc (\code{view}):} chạy bằng \code{eth\_call} trên nút RPC; \emph{không ký, không mất gas}.
+    \item \textbf{Hàm ghi (\code{createTour}, \code{bookSeats}):} tạo \emph{giao dịch}. Web3.js chuyển yêu cầu cho MetaMask,
+          MetaMask hiện cửa sổ \emph{Transaction request} gồm: mạng, hợp đồng tương tác (\code{0xAa5Af...0902e}), số ETH gửi kèm
+          (\emph{Amount}) và \emph{Network fee}. Khi người dùng nhấn \emph{Confirm}, MetaMask \textbf{ký giao dịch bằng khóa riêng}
+          (khóa không bao giờ rời khỏi ví) rồi phát lên mạng.
+    \item \textbf{Phí gas:} mỗi thao tác tiêu tốn một lượng \emph{gas} (đơn vị công việc tính toán), nhân với giá gas
+          (đơn vị wei/gas) cho ra phí tính bằng ETH, \textbf{do người gửi giao dịch trả} cho validator, tách biệt với số ETH thanh toán vé.
+          Phí gas phụ thuộc loại thao tác (ghi nhiều ô nhớ thì đắt hơn) và mức tải của mạng.
+    \item \textbf{Giá trị thanh toán:} với \code{bookSeats}, số ETH gửi kèm (\code{msg.value}) được chuyển vào số dư của hợp đồng;
+          do đó tổng chi của khách $=$ tiền vé $+$ phí gas.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{Phí mạng ước tính do MetaMask hiển thị trong các ảnh chụp}\label{tab:gasfee}
+\begin{tabularx}{\linewidth}{|X|c|c|}
+\hline
+\rowcolor{navyblue}\textcolor{white}{\textbf{Thao tác}} & \textcolor{white}{\textbf{ETH gửi kèm}} & \textcolor{white}{\textbf{Phí mạng (SepoliaETH)}} \\
+\hline
+Triển khai hợp đồng (Deploy) & 0 & $\approx 0{,}0073$ \\
+\hline
+\rowcolor{rowgray}
+\code{createTour(25, 0.08 ETH)} & 0 & $\approx 0{,}0001$ \\
+\hline
+\code{bookSeats(1)} (Account 1) & 0,08 & $\approx 0{,}0004$ \\
+\hline
+\rowcolor{rowgray}
+\code{bookSeats(15)} (Account 1, giá 0,0001 ETH) & 0,0015 & $\approx 0{,}0001$ \\
+\hline
+\end{tabularx}
+\end{table}
+
+Phí mạng thay đổi theo thời điểm và là con số \emph{ước tính} lúc xác nhận; giá trị thực tế thể hiện trong cột \emph{Txn Fee} trên Etherscan
+(Hình~\ref{fig:eth_smartcontract.png}).
+
+\subsection{Etherscan: kiểm chứng công khai}
+
+Mọi giao dịch gọi hợp đồng đều có thể tra cứu công khai trên \texttt{sepolia.etherscan.io}, gồm mã giao dịch, số khối, người gửi,
+giá trị ETH và phí (\ref{sec:ch7}). Điều này thể hiện tính \emph{minh bạch} của DApp: bất kỳ ai cũng kiểm tra được ai đã đặt bao nhiêu vé
+và hợp đồng đang giữ bao nhiêu ETH.

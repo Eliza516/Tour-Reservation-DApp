@@ -1,0 +1,178 @@
+\section{Kiểm thử \& Kết quả thực nghiệm}
+\label{sec:ch7}
+
+\subsection{Môi trường và dữ liệu kiểm thử}
+
+Kiểm thử thực hiện trên \textbf{Sepolia Testnet}, giao diện chạy bằng \code{npm run dev} tại \code{localhost:5173}, dùng ba ví MetaMask:
+
+\begin{table}[H]
+\centering
+\caption{Ba ví dùng trong kiểm thử}
+\begin{tabularx}{\linewidth}{|l|l|X|}
+\hline
+\rowcolor{navyblue}\textcolor{white}{\textbf{Tên ví}} & \textcolor{white}{\textbf{Vai trò}} & \textcolor{white}{\textbf{Địa chỉ}} \\
+\hline
+Account 3 & Điều hành (operator) & \code{0x04fd74c1feb8b77b5f8A6a3f1be546778D06BBa2} \\
+\hline
+\rowcolor{rowgray}
+Account 1 & Khách hàng 1 & \code{0x0594CE6615391f7E18f802B1BeFF30B0A797B381} \\
+\hline
+Account 2 & Khách hàng 2 & \code{0xf41D4f1276dFa6aEDc76C820bE2F579048042d8A} \\
+\hline
+\end{tabularx}
+\end{table}
+
+Hợp đồng đang kiểm thử: \code{0xAa5AfB26CFcc5Fdb6EedAeff80A6E17bD0D0902e}. Hai bộ tham số tour được dùng:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{Tour A (theo đề):} 25 chỗ, 0,08 ETH/người.
+    \item \textbf{Tour B (thu nhỏ):} 20 chỗ, 0,0001 ETH/người --- do ví thử nghiệm không đủ ETH test để đặt nhiều chỗ ở mức giá 0,08 ETH.
+\end{itemize}
+
+\subsection{Bảng tổng hợp các Test Case}
+
+\begin{table}[H]
+\centering
+\caption{Danh sách Test Case}\label{tab:testcases}
+\small
+\begin{tabularx}{\linewidth}{|c|l|X|X|c|}
+\hline
+\rowcolor{navyblue}\textcolor{white}{\textbf{TC}} & \textcolor{white}{\textbf{Ví}} & \textcolor{white}{\textbf{Thao tác / đầu vào}} & \textcolor{white}{\textbf{Kết quả mong đợi}} & \textcolor{white}{\textbf{Minh chứng}} \\
+\hline
+01 & Account 3 & Kết nối MetaMask & Nhận diện \emph{Điều hành}, hiện form tạo tour & Hình~\ref{fig:create_tour.png} \\
+\hline
+\rowcolor{rowgray}
+02 & Account 3 & \code{createTour(25, 0.08 ETH)} & Tạo thành công; chỗ trống $25/25$; giá 0,08 ETH & Hình~\ref{fig:confirm_create_tour.png}, \ref{fig:create_tour_sucess.png} \\
+\hline
+03 & Account 2 & Kết nối MetaMask & Nhận diện \emph{Khách hàng}; vé đã đặt $=0$ & Hình~\ref{fig:cus_ui.png} \\
+\hline
+\rowcolor{rowgray}
+04 & Account 1 & \code{bookSeats(1)}, trả 0,08 ETH (Tour A) & Thành công; chỗ trống $24/25$; ví có 1 vé; hợp đồng nhận 0,08 ETH & Hình~\ref{fig:customer_acc.png}--\ref{fig:book_acc1_success.png}, \ref{fig:eth_smartcontract.png} \\
+\hline
+05 & Account 1 & \code{bookSeats(15)}, trả 0,0015 ETH (Tour B) & Thành công; chỗ trống giảm 15 & Hình~\ref{fig:limiteth.png} \\
+\hline
+\rowcolor{rowgray}
+06 & Account 2 & \code{bookSeats(3)}, trả 0,0003 ETH (Tour B) & Thành công; chỗ trống $2/20$; ví có 3 vé & Hình~\ref{fig:acc2_sucess.png} \\
+\hline
+07 & Account 2 & Nhập số chỗ $=-30$ & Bị chặn: số chỗ phải $\ge 1$; không gửi giao dịch & Hình~\ref{fig:invalid.png} \\
+\hline
+\rowcolor{rowgray}
+08 & Account 2 & Nhập 4 chỗ khi còn 2 chỗ & Bị chặn: giá trị phải $\le 2$; không gửi giao dịch & Hình~\ref{fig:invalid_not_enough.png} \\
+\hline
+09 & Account 2 & Đặt 2 chỗ khi số dư ví không đủ & MetaMask cảnh báo, không thể xác nhận bình thường & Hình~\ref{fig:confirm_book.png} \\
+\hline
+\rowcolor{rowgray}
+10 & Khách hàng & Gọi \code{createTour()} khi không phải điều hành & Bị chặn ở giao diện; hợp đồng revert ``Chi dieu hanh moi co quyen thuc hien'' & Mã nguồn (Mục~\ref{sec:tc-code}) \\
+\hline
+11 & Khách hàng & Gọi \code{bookSeats(n)} với \code{msg.value} $\ne n\times$ giá vé & Hợp đồng revert ``Thanh toan khong dung phi'' & Mã nguồn (Mục~\ref{sec:tc-code}) \\
+\hline
+\end{tabularx}
+\end{table}
+
+\subsection{Kịch bản 1: Điều hành tạo tour (TC01, TC02)}
+
+Ví Account 3 được nhận diện là \emph{Điều hành} (Hình~\ref{fig:create_tour.png}, \ref{sec:ch3}); chỉ ví này thấy form \emph{Mở / Tạo Tour}.
+Điều hành nhập 25 chỗ, giá 0,08 ETH và gửi giao dịch; MetaMask hiện cửa sổ xác nhận với hợp đồng đích \code{0xAa5Af...0902e},
+không kèm ETH và phí mạng khoảng 0,0001 SepoliaETH.
+
+\shot{confirm_create_tour.png}{MetaMask xác nhận giao dịch \code{createTour} (25 chỗ, 0,08 ETH/người) của ví Điều hành}{0.95}
+
+Sau khi giao dịch được xác nhận, giao diện hiển thị thông báo \emph{``Đã mở tour mới với 25 chỗ, giá 0.08 ETH/người!''},
+thẻ chỗ trống là $25/25$ và số chỗ đã được đặt là 0.
+
+\shot{create_tour_sucess.png}{Tạo tour thành công: $25/25$ chỗ trống, giá vé 0,08 ETH, chưa có chỗ nào được đặt}{0.95}
+
+\subsection{Kịch bản 2: Khách hàng đặt chỗ (TC03, TC04)}
+
+Ví Account 2 vào giao diện \emph{Khách hàng} (Hình~\ref{fig:cus_ui.png}). Chuyển sang Account 1 (số dư 0,09 ETH),
+giao diện tự nhận diện lại là Khách hàng nhờ sự kiện \code{accountsChanged}; biểu mẫu tính sẵn tổng thanh toán dự kiến $=1\times0{,}08=0{,}08$ ETH.
+
+\shot{customer_acc.png}{Account 1 được nhận diện là Khách hàng, số dư 0,0900 ETH; đặt 1 chỗ $\Rightarrow$ tổng thanh toán dự kiến 0,0800 ETH}{0.95}
+
+Khi nhấn \emph{Đặt chỗ ngay}, MetaMask hiển thị \emph{Amount} $=0{,}08$ SepoliaETH và phí mạng $\approx0{,}0004$; sau khi xác nhận, giao dịch
+\code{bookSeats(1)} được ghi lên chuỗi.
+
+\shot{confirm_book_acc1.png}{MetaMask xác nhận \code{bookSeats(1)} của Account 1: Amount 0,08 SepoliaETH}{0.95}
+
+Sau giao dịch, ứng dụng đồng bộ lại dữ liệu. Khi xem bằng ví Điều hành, thẻ chỗ trống chuyển từ $25/25$ thành $24/25$ và
+\emph{Số chỗ đã được đặt} thành 1 chỗ --- cập nhật đúng số chỗ trống (ràng buộc 3).
+
+\shot{book_acc1_success.png}{Sau khi Account 1 đặt 1 chỗ: giao diện Điều hành hiển thị $24/25$ chỗ trống, 1 chỗ đã đặt; thông báo ``Đặt thành công 1 chỗ (Thanh toán 0.0800 ETH)''}{0.95}
+
+\textbf{Đối chiếu trên Etherscan.} Trang địa chỉ hợp đồng cho thấy hợp đồng có 7 giao dịch, trong đó có giao dịch từ ví Account 1 (\code{0x0594CE66...0A797B381})
+gửi \textbf{0,08 ETH} tới hợp đồng ở khối 12139722; các giao dịch \code{createTour} có mã hàm (method id) \code{0x8c0e2c09},
+các giao dịch \code{bookSeats} có mã \code{0x4bc5ae9a}. Số dư hợp đồng lúc chụp là 0,0802 ETH, tức tiền vé đã được hợp đồng giữ đúng như thiết kế.
+
+\shot{eth_smartcontract.png}{Sepolia Etherscan: địa chỉ hợp đồng, người tạo hợp đồng (Account 3), số dư 0,0802 ETH và danh sách giao dịch}{0.95}
+
+\subsection{Kịch bản 3: Nhiều khách hàng đặt trên cùng tour (TC05, TC06)}
+
+Để thử nhiều khách trong điều kiện hạn chế ETH test, Điều hành mở lại Tour B (20 chỗ, 0,0001 ETH/người). Account 1 đặt 15 chỗ, thanh toán
+$15\times0{,}0001=0{,}0015$ ETH:
+
+\shot{limiteth.png}{Tour B (20 chỗ, 0,0001 ETH): Account 1 đặt 15 chỗ, MetaMask hiển thị Amount 0,0015 SepoliaETH}{0.95}
+
+Sau đó Account 2 đặt 3 chỗ ($3\times0{,}0001=0{,}0003$ ETH). Kết quả: chỗ trống còn $20-15-3=2$, tức hiển thị $2/20$, và Account 2 có 3 vé ---
+đúng với yêu cầu cập nhật \emph{số chỗ theo từng ví}.
+
+\shot{acc2_sucess.png}{Account 2 đặt 3 chỗ thành công: ``Đặt thành công 3 chỗ (Thanh toán 0.0003 ETH)'', còn $2/20$ chỗ, vé của ví $=3$}{0.95}
+
+\subsection{Kịch bản 4: Các ca kiểm tra lỗi (TC07--TC09)}
+
+\textbf{TC07 --- Số chỗ âm.} Nhập $-30$: trình duyệt chặn ngay với thông báo \emph{``Value must be greater than or equal to 1''}
+(thuộc tính \code{min="1"}), tổng thanh toán hiện 0,0000 ETH và \textbf{không có giao dịch nào được gửi}, nên không mất gas.
+
+\shot{invalid.png}{TC07: nhập số chỗ $-30$ bị chặn (``Value must be greater than or equal to 1'')}{0.95}
+
+\textbf{TC08 --- Vượt quá số chỗ trống.} Khi chỉ còn 2 chỗ, nhập 4: ô nhập có \code{max=availableSeats} nên trình duyệt báo
+\emph{``Value must be less than or equal to 2''}. Nếu vẫn gọi được, hàm \code{handleBookSeats} cũng từ chối với thông báo
+``Số chỗ đặt (4) vượt quá số chỗ trống còn lại (2)'', và cuối cùng \code{require(\_seats <= availableSeats)} trong hợp đồng sẽ revert.
+
+\shot{invalid_not_enough.png}{TC08: đặt 4 chỗ khi chỉ còn 2 bị chặn (``Value must be less than or equal to 2'')}{0.95}
+
+\textbf{TC09 --- Không đủ ETH.} Account 2 đặt 2 chỗ ($0{,}0002$ ETH) trong khi số dư ví rất thấp (ảnh Hình~\ref{fig:invalid_not_enough.png} cho thấy MetaMask còn $\approx0{,}0000908$ ETH).
+MetaMask không ước tính được phí mạng (``Unavailable'') và nút xác nhận chuyển thành \emph{Review alert}, cảnh báo giao dịch có nguy cơ thất bại; người dùng có thể
+hủy (\emph{Cancel}) mà không mất phí. Đây là lớp bảo vệ của ví, nằm ngoài smart contract.
+
+\shot{confirm_book.png}{TC09: MetaMask cảnh báo khi Account 2 đặt 2 chỗ nhưng số dư không đủ (phí mạng ``Unavailable'', nút \emph{Review alert})}{0.95}
+
+\subsection{Các ca kiểm tra suy ra từ mã nguồn (TC10, TC11)}
+\label{sec:tc-code}
+
+Hai ca dưới đây được kiểm bằng phân tích mã (giao diện cố tình không cho phát sinh hai tình huống này, nên muốn quan sát phải gọi hợp đồng trực tiếp, ví dụ từ Remix):
+
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{TC10:} ví không phải điều hành gọi \code{createTour()}. Giao diện không hiển thị form này cho Khách hàng; nếu vẫn gọi trực tiếp, modifier
+          \code{onlyOperator} làm giao dịch revert với thông báo ``Chi dieu hanh moi co quyen thuc hien''.
+    \item \textbf{TC11:} gửi \code{bookSeats(n)} với \code{msg.value} khác $n\times\texttt{ticketPrice}$. Giao diện luôn tính chính xác bằng \code{BigInt};
+          gọi trực tiếp với số tiền sai sẽ revert ``Thanh toan khong dung phi''.
+\end{itemize}
+
+\subsection{Nhận xét kết quả}
+
+\begin{table}[H]
+\centering
+\caption{Đối chiếu kết quả với yêu cầu nghiệp vụ}
+\begin{tabularx}{\linewidth}{|c|X|c|}
+\hline
+\rowcolor{navyblue}\textcolor{white}{\textbf{STT}} & \textcolor{white}{\textbf{Yêu cầu}} & \textcolor{white}{\textbf{Kết quả}} \\
+\hline
+1 & Chỉ điều hành tạo tour với số chỗ dương & Đạt (TC01, TC02, TC10) \\
+\hline
+\rowcolor{rowgray}
+2 & Số chỗ đặt nguyên dương, không vượt chỗ trống, thanh toán đúng phí & Đạt (TC04--TC08, TC11) \\
+\hline
+3 & Cập nhật số chỗ trống và số chỗ theo ví & Đạt (TC04--TC06: $24/25$; $2/20$, ví có 1, 15, 3 vé) \\
+\hline
+\rowcolor{rowgray}
+4 & Hiển thị giá tour, chỗ trống và vé đã đặt & Đạt (ba thẻ thống kê ở mọi ảnh chụp) \\
+\hline
+\end{tabularx}
+\end{table}
+
+\begin{infobox}
+\textbf{Quan sát về hành vi của hợp đồng.} Trong Hình~\ref{fig:limiteth.png}, ngay sau khi Điều hành mở lại tour mới (Tour B), Account 1 vẫn thấy
+\emph{``Vé bạn đã đặt: 1 chỗ''} --- chính là vé của Tour A. Lý do: \code{createTour()} đặt lại \code{totalSeats}, \code{availableSeats}, \code{ticketPrice}
+nhưng \textbf{không xóa mapping \code{bookings}}, nên số vé của các tour được cộng dồn theo ví. Với đề bài (một tour duy nhất) điều này chấp nhận được;
+hướng khắc phục (quản lý nhiều tour theo \code{tourId}) được nêu ở \ref{sec:ch8}.
+\end{infobox}
