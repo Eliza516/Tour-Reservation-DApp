@@ -1,4 +1,3 @@
-
 ## Đề 36:
 
 Tour Reservation DApp
@@ -29,10 +28,15 @@ trống và vé đã đặt.
 
 Mạng: Sepolia
 
+Solidity version: [0.8.34+commit.80d5c536](https://app.remix.live/#)
+
+**Node.js:** **v24.11.0**
+
+**npm:** **11.6.1**
+
 Transaction hash: 0xf19d9b68eef0818274737aa9c513e8b0e8b2b73bc0de502ffb861313ef01738c
 
 Etherscan: [sepolia.etherscan.io/tx/0xdb4d19e8fdfc830b3ceb14269ff4d0f0fda9ef7d02713423952dfaadb129a936](https://sepolia.etherscan.io/tx/0xdb4d19e8fdfc830b3ceb14269ff4d0f0fda9ef7d02713423952dfaadb129a936)
-
 
 Địa chỉ 3 ví :
 
