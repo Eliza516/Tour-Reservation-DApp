@@ -23,8 +23,6 @@ tiền của khách được hợp đồng giữ và mọi giao dịch đều tr
 
 \begin{itemize}[leftmargin=1.5em]
     \item \textbf{Chưa có cách rút tiền:} số ETH thu từ vé nằm trong hợp đồng nhưng không có hàm để Điều hành rút, nên tiền bị khóa trong hợp đồng.
-    \item \textbf{Chỉ có một tour tại một thời điểm:} gọi lại \code{createTour()} sẽ ghi đè thông tin tour (kể cả khi đã có người đặt) và
-          không xóa số vé đã lưu theo ví (xem nhận xét ở \ref{sec:ch7}).
     \item \textbf{Không hủy vé/hoàn tiền:} khách đã đặt không thể hủy.
     \item \textbf{Số vé theo ví chỉ xem được qua ví đó:} chưa có danh sách khách hàng hay lịch sử đặt chỗ trên giao diện.
     \item \textbf{Chưa có kiểm thử tự động} cho hợp đồng (hiện kiểm thử thủ công trên Sepolia).

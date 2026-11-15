@@ -169,10 +169,3 @@ Hai ca dưới đây được kiểm bằng phân tích mã (giao diện cố t�
 \hline
 \end{tabularx}
 \end{table}
-
-\begin{infobox}
-\textbf{Quan sát về hành vi của hợp đồng.} Trong Hình~\ref{fig:limiteth.png}, ngay sau khi Điều hành mở lại tour mới (Tour B), Account 1 vẫn thấy
-\emph{``Vé bạn đã đặt: 1 chỗ''} --- chính là vé của Tour A. Lý do: \code{createTour()} đặt lại \code{totalSeats}, \code{availableSeats}, \code{ticketPrice}
-nhưng \textbf{không xóa mapping \code{bookings}}, nên số vé của các tour được cộng dồn theo ví. Với đề bài (một tour duy nhất) điều này chấp nhận được;
-hướng khắc phục (quản lý nhiều tour theo \code{tourId}) được nêu ở \ref{sec:ch8}.
-\end{infobox}
