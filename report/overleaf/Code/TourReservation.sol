@@ -5,10 +5,10 @@ contract TourReservation {
     address public operator;
     uint256 public totalSeats;
     uint256 public availableSeats;
-    uint256 public ticketPrice; // Đơn vị: wei (0.08 ETH = 80000000000000000 wei)
+    uint256 public ticketPrice; // Don vi: wei (0.08 ETH = 80000000000000000 wei)
     bool public isTourActive;
 
-    // Lưu số vé đã đặt theo từng địa chỉ ví
+    // Luu so ve da dat theo tung dia chi vi
     mapping(address => uint256) private bookings;
 
     event TourCreated(uint256 totalSeats, uint256 ticketPrice);
@@ -23,7 +23,7 @@ contract TourReservation {
         operator = msg.sender;
     }
 
-    // 1. Chỉ điều hành tạo tour với số chỗ dương và giá vé dương
+    // 1. Chi dieu hanh tao tour voi so cho duong va gia ve duong
     function createTour(uint256 _totalSeats, uint256 _ticketPrice) external onlyOperator {
         require(_totalSeats > 0, "So cho phai lon hon 0");
         require(_ticketPrice > 0, "Gia ve phai lon hon 0");
@@ -36,7 +36,7 @@ contract TourReservation {
         emit TourCreated(_totalSeats, _ticketPrice);
     }
 
-    // 2. Khách hàng đặt chỗ: nguyên dương, không vượt chỗ trống, thanh toán đúng phí
+    // 2. Khach hang dat cho: nguyen duong, khong vuot cho trong, thanh toan dung phi
     function bookSeats(uint256 _seats) external payable {
         require(isTourActive, "Hien chua co tour nao duoc mo");
         require(_seats > 0, "So cho dat phai lon hon 0");
@@ -49,12 +49,12 @@ contract TourReservation {
         emit SeatsBooked(msg.sender, _seats, msg.value);
     }
 
-    // 3. Xem số chỗ trống còn lại
+    // 3. Xem so cho trong con lai
     function getAvailableSeats() external view returns (uint256) {
         return availableSeats;
     }
 
-    // 4. Xem số vé đã đặt của ví đang gọi
+    // 4. Xem so ve da dat cua vi dang goi
     function getMyBookings() external view returns (uint256) {
         return bookings[msg.sender];
     }

@@ -1,12 +1,12 @@
 export const CONTRACT_ADDRESS = "0xAa5AfB26CFcc5Fdb6EedAeff80A6E17bD0D0902e";
 
 export const TOUR_DEFAULT = {
-  name: "Tour Du Lịch Khám Phá 25 Chỗ",
+  name: "Tour Du Lich Kham Pha 25 Cho",
   totalSeats: 25,
   ticketPriceEth: "0.08",
 };
 
-// ABI khớp với TourReservation.sol
+// ABI khop voi TourReservation.sol
 export const CONTRACT_ABI = [
   {
     inputs: [],

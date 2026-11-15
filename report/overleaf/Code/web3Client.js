@@ -7,7 +7,7 @@ export function hasMetaMask() {
 
 export function createWeb3Instance() {
   if (!hasMetaMask()) {
-    throw new Error("Chưa phát hiện ví MetaMask. Vui lòng cài đặt MetaMask extension.");
+    throw new Error("Chua phat hien vi MetaMask. Vui long cai dat MetaMask extension.");
   }
   return new Web3(window.ethereum);
 }
@@ -19,7 +19,7 @@ export async function connectMetaMaskWallet() {
   });
 
   if (!accounts || accounts.length === 0) {
-    throw new Error("Không tìm thấy tài khoản ví nào được chọn.");
+    throw new Error("Khong tim thay tai khoan vi nao duoc chon.");
   }
 
   const account = accounts[0];

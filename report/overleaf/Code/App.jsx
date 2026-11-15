@@ -78,7 +78,7 @@ function App() {
         setAccount("");
         setBalanceEth("0.0000");
         setMyBookings(0);
-        showStatus("info", "Ví MetaMask đã ngắt kết nối.");
+        showStatus("info", "Vi MetaMask da ngat ket noi.");
         return;
       }
 
@@ -130,9 +130,9 @@ function App() {
         await syncOnChainData(w3, acc);
       }
 
-      showStatus("success", `Đã kết nối ví ${formatShortAddress(acc)} thành công!`);
+      showStatus("success", `Da ket noi vi ${formatShortAddress(acc)} thanh cong!`);
     } catch (err) {
-      showStatus("error", err.message || "Không thể kết nối MetaMask.");
+      showStatus("error", err.message || "Khong the ket noi MetaMask.");
     } finally {
       setLoading(false);
     }
@@ -140,19 +140,19 @@ function App() {
 
   const handleCreateTour = async (e) => {
     e.preventDefault();
-    if (!account) return showStatus("error", "Vui lòng kết nối ví MetaMask trước.");
+    if (!account) return showStatus("error", "Vui long ket noi vi MetaMask truoc.");
 
     const seatsNum = Number(newTourSeats);
     const priceNum = Number(newTourPrice);
 
     if (!Number.isInteger(seatsNum) || seatsNum <= 0) {
-      return showStatus("error", "Số chỗ của tour phải là số nguyên dương (> 0).");
+      return showStatus("error", "So cho cua tour phai la so nguyen duong (> 0).");
     }
     if (Number.isNaN(priceNum) || priceNum <= 0) {
-      return showStatus("error", "Giá vé tour phải lớn hơn 0 ETH.");
+      return showStatus("error", "Gia ve tour phai lon hon 0 ETH.");
     }
     if (!isOperator) {
-      return showStatus("error", "Chỉ ví Điều hành (Operator) mới có quyền tạo tour.");
+      return showStatus("error", "Chi vi Dieu hanh (Operator) moi co quyen tao tour.");
     }
 
     setLoading(true);
@@ -170,9 +170,9 @@ function App() {
         setMyBookings(0);
         setTourCreated(true);
       }
-      showStatus("success", `Đã mở tour mới với ${seatsNum} chỗ, giá ${priceNum} ETH/người!`);
+      showStatus("success", `Da mo tour moi voi ${seatsNum} cho, gia ${priceNum} ETH/nguoi!`);
     } catch (err) {
-      showStatus("error", err.message || "Tạo tour thất bại.");
+      showStatus("error", err.message || "Tao tour that bai.");
     } finally {
       setLoading(false);
     }
@@ -180,17 +180,17 @@ function App() {
 
   const handleBookSeats = async (e) => {
     e.preventDefault();
-    if (!account) return showStatus("error", "Vui lòng kết nối ví MetaMask trước khi đặt chỗ.");
-    if (!tourCreated) return showStatus("error", "Hiện chưa có tour nào được mở.");
+    if (!account) return showStatus("error", "Vui long ket noi vi MetaMask truoc khi dat cho.");
+    if (!tourCreated) return showStatus("error", "Hien chua co tour nao duoc mo.");
 
     const seatsNum = Number(seatsToBook);
     if (!Number.isInteger(seatsNum) || seatsNum <= 0) {
-      return showStatus("error", "Số chỗ đặt phải là số nguyên dương (> 0).");
+      return showStatus("error", "So cho dat phai la so nguyen duong (> 0).");
     }
     if (seatsNum > availableSeats) {
       return showStatus(
         "error",
-        `Số chỗ đặt (${seatsNum}) vượt quá số chỗ trống còn lại (${availableSeats}).`
+        `So cho dat (${seatsNum}) vuot qua so cho trong con lai (${availableSeats}).`
       );
     }
 
@@ -220,9 +220,9 @@ function App() {
         }));
       }
 
-      showStatus("success", `Đặt thành công ${seatsNum} chỗ (Thanh toán ${totalCostEth} ETH)!`);
+      showStatus("success", `Dat thanh cong ${seatsNum} cho (Thanh toan ${totalCostEth} ETH)!`);
     } catch (err) {
-      showStatus("error", err.message || "Đặt chỗ thất bại.");
+      showStatus("error", err.message || "Dat cho that bai.");
     } finally {
       setLoading(false);
     }
@@ -237,10 +237,10 @@ function App() {
     <div className="app-shell">
       <header className="topbar">
         <div className="brand">
-          <span className="brand-badge">Đề 36</span>
+          <span className="brand-badge">De 36</span>
           <div>
             <h1>Tour Reservation DApp</h1>
-            <p className="subtitle">Đặt vé du lịch minh bạch trên Web3 &amp; Solidity</p>
+            <p className="subtitle">Dat ve du lich minh bach tren Web3 &amp; Solidity</p>
           </div>
         </div>
 
@@ -248,7 +248,7 @@ function App() {
           {account ? (
             <div className="wallet-pill">
               <span className={`role-tag ${isOperator ? "operator" : "customer"}`}>
-                {isOperator ? "Điều hành" : "Khách hàng"}
+                {isOperator ? "Dieu hanh" : "Khach hang"}
               </span>
               <span className="network-tag">{getNetworkName(chainId)}</span>
               <span className="balance-tag">{balanceEth} ETH</span>
@@ -258,7 +258,7 @@ function App() {
             </div>
           ) : (
             <button className="btn btn-primary" onClick={handleConnectWallet} disabled={loading}>
-              {loading ? "Đang kết nối..." : "Kết nối MetaMask"}
+              {loading ? "Dang ket noi..." : "Ket noi MetaMask"}
             </button>
           )}
         </div>
@@ -268,12 +268,12 @@ function App() {
         <div className={`mode-banner ${isOnChainMode ? "onchain" : "mock"}`}>
           {isOnChainMode ? (
             <>
-              <strong>Chế độ On-Chain:</strong> Đang kết nối Smart Contract tại{" "}
+              <strong>Che do On-Chain:</strong> Dang ket noi Smart Contract tai{" "}
               <code>{formatShortAddress(CONTRACT_ADDRESS)}</code>
             </>
           ) : (
             <>
-              <strong>Chế độ mô phỏng:</strong> Chưa có <code>CONTRACT_ADDRESS</code>.
+              <strong>Che do mo phong:</strong> Chua co <code>CONTRACT_ADDRESS</code>.
             </>
           )}
         </div>
@@ -282,35 +282,35 @@ function App() {
           <div className={`alert alert-${statusMessage.type}`}>
             <span>{statusMessage.text}</span>
             <button className="alert-close" onClick={() => setStatusMessage(null)}>
-              ×
+              x
             </button>
           </div>
         )}
 
         <section className="stats-grid">
           <div className="stat-card">
-            <span className="stat-label">Giá vé / người</span>
+            <span className="stat-label">Gia ve / nguoi</span>
             <strong className="stat-value">{ticketPriceEth} ETH</strong>
-            <span className="stat-hint">Thanh toán đúng phí khi đặt</span>
+            <span className="stat-hint">Thanh toan dung phi khi dat</span>
           </div>
 
           <div className="stat-card">
-            <span className="stat-label">Chỗ trống còn lại</span>
+            <span className="stat-label">Cho trong con lai</span>
             <strong className="stat-value accent">
               {availableSeats} / {totalSeats}
             </strong>
-            <span className="stat-hint">Hàm: getAvailableSeats()</span>
+            <span className="stat-hint">Ham: getAvailableSeats()</span>
           </div>
 
           <div className="stat-card">
             <span className="stat-label">
-              {isOperator ? "Số chỗ đã được đặt" : "Vé bạn đã đặt"}
+              {isOperator ? "So cho da duoc dat" : "Ve ban da dat"}
             </span>
             <strong className="stat-value">
-              {isOperator ? `${Math.max(totalSeats - availableSeats, 0)} chỗ` : `${myBookings} chỗ`}
+              {isOperator ? `${Math.max(totalSeats - availableSeats, 0)} cho` : `${myBookings} cho`}
             </strong>
             <span className="stat-hint">
-              {isOperator ? "Tổng hợp toàn tour" : "Hàm: getMyBookings()"}
+              {isOperator ? "Tong hop toan tour" : "Ham: getMyBookings()"}
             </span>
           </div>
         </section>
@@ -318,30 +318,30 @@ function App() {
         <section className="role-panel-wrap">
           {!account ? (
             <div className="panel panel-center">
-              <h2>Chưa kết nối ví MetaMask</h2>
+              <h2>Chua ket noi vi MetaMask</h2>
               <p className="panel-desc">
-                Vui lòng kết nối ví MetaMask. Hệ thống sẽ tự động nhận diện bạn là{" "}
-                <strong>Điều hành</strong> hay <strong>Khách hàng</strong> để hiển thị giao
-                diện phù hợp.
+                Vui long ket noi vi MetaMask. He thong se tu dong nhan dien ban la{" "}
+                <strong>Dieu hanh</strong> hay <strong>Khach hang</strong> de hien thi giao
+                dien phu hop.
               </p>
               <button className="btn btn-primary" onClick={handleConnectWallet} disabled={loading}>
-                {loading ? "Đang kết nối..." : "Kết nối MetaMask ngay"}
+                {loading ? "Dang ket noi..." : "Ket noi MetaMask ngay"}
               </button>
             </div>
           ) : isOperator ? (
             <div className="panel">
               <div className="panel-header">
-                <h2>Giao diện Điều hành — Mở / Tạo Tour</h2>
+                <h2>Giao dien Dieu hanh - Mo / Tao Tour</h2>
                 <span className="fn-chip">createTour()</span>
               </div>
               <p className="panel-desc">
-                Bạn đang đăng nhập bằng ví Điều hành{" "}
+                Ban dang dang nhap bang vi Dieu hanh{" "}
                 <code>{formatShortAddress(operatorAddress)}</code>.
               </p>
 
               <form onSubmit={handleCreateTour} className="form-stack">
                 <label className="field">
-                  <span>Tổng số chỗ (nguyên dương)</span>
+                  <span>Tong so cho (nguyen duong)</span>
                   <input
                     type="number"
                     min="1"
@@ -353,7 +353,7 @@ function App() {
                 </label>
 
                 <label className="field">
-                  <span>Giá vé mỗi người (ETH)</span>
+                  <span>Gia ve moi nguoi (ETH)</span>
                   <input
                     type="number"
                     min="0.0001"
@@ -365,21 +365,21 @@ function App() {
                 </label>
 
                 <button type="submit" className="btn btn-secondary btn-full" disabled={loading}>
-                  {loading ? "Đang xử lý..." : "Tạo / Mở lại Tour"}
+                  {loading ? "Dang xu ly..." : "Tao / Mo lai Tour"}
                 </button>
               </form>
             </div>
           ) : (
             <div className="panel">
               <div className="panel-header">
-                <h2>Giao diện Khách hàng — Đặt chỗ Tour</h2>
+                <h2>Giao dien Khach hang - Dat cho Tour</h2>
                 <span className="fn-chip">bookSeats()</span>
               </div>
               <p className="panel-desc">{TOUR_DEFAULT.name}</p>
 
               <form onSubmit={handleBookSeats} className="form-stack">
                 <label className="field">
-                  <span>Số lượng chỗ muốn đặt</span>
+                  <span>So luong cho muon dat</span>
                   <input
                     type="number"
                     min="1"
@@ -392,7 +392,7 @@ function App() {
                 </label>
 
                 <div className="summary-row">
-                  <span>Tổng thanh toán dự kiến:</span>
+                  <span>Tong thanh toan du kien:</span>
                   <strong>{calculatedTotalEth} ETH</strong>
                 </div>
 
@@ -402,10 +402,10 @@ function App() {
                   disabled={loading || availableSeats === 0}
                 >
                   {availableSeats === 0
-                    ? "Tour đã hết chỗ"
+                    ? "Tour da het cho"
                     : loading
-                    ? "Đang xử lý..."
-                    : "Đặt chỗ ngay"}
+                    ? "Dang xu ly..."
+                    : "Dat cho ngay"}
                 </button>
               </form>
             </div>
