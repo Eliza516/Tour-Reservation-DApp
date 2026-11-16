@@ -3,9 +3,6 @@
 
 \subsection{Cấu trúc thư mục \code{frontend/}}
 
-Dự án frontend được khởi tạo bằng Vite với mẫu React. Các tệp do người lập trình viết hoặc chỉnh sửa
-nằm trong \code{src/}:
-
 \begin{lstlisting}[style=ShellStyle, caption={Cấu trúc thư mục frontend}]
 frontend/
 |-- index.html               # root HTML page, loads /src/main.jsx
@@ -23,30 +20,15 @@ frontend/
         `-- web3Client.js    # MetaMask / web3.js helper functions
 \end{lstlisting}
 
-Việc tách tệp tuân theo nguyên tắc phân tầng: \code{config/contract.js} chứa \emph{dữ liệu cấu hình} (địa chỉ và ABI
-của hợp đồng), \code{utils/web3Client.js} chứa \emph{lớp truy cập blockchain}, còn \code{App.jsx} chỉ lo trạng thái và giao diện.
-Khi triển khai lại hợp đồng, chỉ cần đổi \code{CONTRACT\_ADDRESS} trong một tệp.
+Phân tầng: \code{config/contract.js} chứa cấu hình hợp đồng, \code{utils/web3Client.js} là lớp truy cập blockchain,
+\code{App.jsx} lo trạng thái và giao diện. Triển khai lại hợp đồng chỉ cần đổi \code{CONTRACT\_ADDRESS}.
 
 \subsection{Thiết kế giao diện (\code{App.jsx}, \code{App.css})}
 
-Giao diện là một trang đơn (single page) gồm các khối từ trên xuống:
-
-\begin{enumerate}[leftmargin=1.8em]
-    \item \textbf{Thanh đầu trang (topbar):} tên ứng dụng và khu vực ví. Khi chưa kết nối hiện nút \emph{Kết nối MetaMask};
-          khi đã kết nối hiện ``viên thuốc'' (wallet pill) gồm vai trò (Điều hành/Khách hàng), tên mạng, số dư ETH và địa chỉ rút gọn.
-    \item \textbf{Biểu ngữ chế độ:} cho biết đang ở \emph{chế độ On-Chain} (đã khai báo \code{CONTRACT\_ADDRESS}) hay chế độ mô phỏng.
-    \item \textbf{Thông báo trạng thái (alert):} xanh = thành công, đỏ = lỗi, xanh dương = thông tin; có nút đóng.
-    \item \textbf{Ba thẻ thống kê:} giá vé/người, chỗ trống còn lại, và số vé đã đặt (xem Mục~\ref{sec:stats}).
-    \item \textbf{Bảng thao tác theo vai trò:} form tạo tour (Điều hành) hoặc form đặt chỗ (Khách hàng).
-\end{enumerate}
-
-\code{App.css} dùng CSS thuần với bố cục \code{flex}/\code{grid} (ví dụ \code{.stats-grid} dùng
-\code{repeat(auto-fit, minmax(220px, 1fr))} để tự co giãn theo độ rộng màn hình), các lớp màu cho thông báo
-(\code{.alert-success}, \code{.alert-error}, \code{.alert-info}) và nút (\code{.btn-primary}, \code{.btn-secondary}).
-
-\subsection{Quản lý trạng thái}
-
-\code{App.jsx} dùng hook \code{useState} để giữ các trạng thái chính:
+Trang đơn gồm các khối: (1) \textbf{thanh đầu trang} --- nút \emph{Kết nối MetaMask}, sau khi kết nối hiện vai trò, mạng, số dư ETH và địa chỉ rút gọn;
+(2) \textbf{biểu ngữ chế độ} On-Chain/mô phỏng; (3) \textbf{thông báo} thành công/lỗi/thông tin; (4) \textbf{ba thẻ thống kê};
+(5) \textbf{bảng thao tác theo vai trò}. \code{App.css} dùng CSS thuần (\code{flex}, \code{grid}; \code{.stats-grid} dùng
+\code{repeat(auto-fit, minmax(220px, 1fr))} để tự co giãn).
 
 \begin{table}[H]
 \centering
@@ -55,20 +37,17 @@ Giao diện là một trang đơn (single page) gồm các khối từ trên xu�
 \hline
 \rowcolor{navyblue}\textcolor{white}{\textbf{Trạng thái}} & \textcolor{white}{\textbf{Ý nghĩa}} \\
 \hline
-\code{account}, \code{balanceEth}, \code{chainId} & Ví đang kết nối, số dư ETH, mạng hiện tại. \\
+\code{account}, \code{balanceEth}, \code{chainId} & Ví đang kết nối, số dư ETH, mạng. \\
 \hline
 \rowcolor{rowgray}
-\code{operatorAddress} & Địa chỉ điều hành, đọc từ \code{operator()} của hợp đồng. \\
+\code{operatorAddress} & Địa chỉ điều hành, đọc từ \code{operator()}. \\
 \hline
 \code{totalSeats}, \code{availableSeats}, \code{ticketPriceEth} & Thông tin tour đọc từ hợp đồng. \\
 \hline
 \rowcolor{rowgray}
-\code{myBookings} & Số vé của ví đang kết nối (từ \code{getMyBookings()}). \\
+\code{myBookings} & Số vé của ví đang kết nối (\code{getMyBookings()}). \\
 \hline
-\code{seatsToBook}, \code{newTourSeats}, \code{newTourPrice} & Giá trị người dùng đang nhập trong hai form. \\
-\hline
-\rowcolor{rowgray}
-\code{loading}, \code{statusMessage} & Trạng thái chờ giao dịch và thông báo hiển thị cho người dùng. \\
+\code{loading}, \code{statusMessage} & Trạng thái chờ giao dịch và thông báo. \\
 \hline
 \end{tabularx}
 \end{table}
@@ -76,14 +55,10 @@ Giao diện là một trang đơn (single page) gồm các khối từ trên xu�
 \subsection{Hiển thị giá tour, chỗ trống và vé đã đặt}
 \label{sec:stats}
 
-Ba thẻ thống kê (class \code{stat-card}) đáp ứng ràng buộc số 4 của đề:
-
 \begin{itemize}[leftmargin=1.5em]
-    \item \textbf{Giá vé/người:} \code{ticketPriceEth} --- đọc \code{ticketPrice()} (đơn vị wei) rồi đổi sang ETH bằng
-          \code{web3.utils.fromWei}.
-    \item \textbf{Chỗ trống còn lại:} \code{availableSeats / totalSeats} --- dữ liệu từ \code{getAvailableSeats()} và \code{totalSeats()}.
-    \item \textbf{Vé đã đặt:} với khách hàng là \code{myBookings} (từ \code{getMyBookings()}); với điều hành, thẻ này
-          đổi nhãn thành \emph{Số chỗ đã được đặt} và hiển thị tổng $\texttt{totalSeats} - \texttt{availableSeats}$ của toàn tour.
+    \item \textbf{Giá vé/người:} \code{ticketPrice()} (wei) đổi sang ETH bằng \code{web3.utils.fromWei}.
+    \item \textbf{Chỗ trống:} \code{availableSeats / totalSeats} từ \code{getAvailableSeats()} và \code{totalSeats()}.
+    \item \textbf{Vé đã đặt:} khách hàng thấy \code{getMyBookings()}; điều hành thấy tổng $\texttt{totalSeats} - \texttt{availableSeats}$ của cả tour.
 \end{itemize}
 
 \lstinputlisting[style=JSStyle, firstline=290, lastline=316,
@@ -91,14 +66,11 @@ Ba thẻ thống kê (class \code{stat-card}) đáp ứng ràng buộc số 4 c�
 
 \subsection{Cơ chế tự động nhận diện vai trò (\code{isOperator})}
 
-Thay vì bắt người dùng chọn vai trò, giao diện tự suy ra vai trò từ ví đang kết nối:
-
 \lstinputlisting[style=JSStyle, firstline=40, lastline=43,
   caption={Xác định vai trò bằng so sánh địa chỉ ví}]{Code/App.jsx}
 
-Biến \code{isOperator} là \code{true} khi địa chỉ ví kết nối trùng với \code{operator()} lấy từ hợp đồng
-(so sánh sau khi chuyển về chữ thường, vì địa chỉ Ethereum có thể viết hoa/thường khác nhau do chuẩn checksum).
-Dựa vào đó, phần hiển thị chia thành ba nhánh (\code{App.jsx}, khối \code{role-panel-wrap}):
+\code{isOperator} là \code{true} khi ví đang kết nối trùng với \code{operator()} của hợp đồng; so sánh sau khi chuyển về chữ thường
+vì địa chỉ Ethereum có thể khác hoa/thường theo chuẩn checksum. Giao diện chia ba nhánh:
 
 \begin{table}[H]
 \centering
@@ -107,33 +79,26 @@ Dựa vào đó, phần hiển thị chia thành ba nhánh (\code{App.jsx}, kh�
 \hline
 \rowcolor{navyblue}\textcolor{white}{\textbf{Điều kiện}} & \textcolor{white}{\textbf{Giao diện}} & \textcolor{white}{\textbf{Nội dung}} \\
 \hline
-\code{!account} & Chưa kết nối & Hướng dẫn và nút \emph{Kết nối MetaMask ngay}. \\
+\code{!account} & Chưa kết nối & Nút \emph{Kết nối MetaMask ngay}. \\
 \hline
 \rowcolor{rowgray}
-\code{isOperator} & Điều hành & Form \emph{Mở / Tạo Tour} (tổng số chỗ, giá vé) gọi \code{createTour()}. \\
+\code{isOperator} & Điều hành & Form \emph{Mở / Tạo Tour} $\to$ \code{createTour()}. \\
 \hline
-còn lại & Khách hàng & Form \emph{Đặt chỗ Tour} (số chỗ, tổng thanh toán dự kiến) gọi \code{bookSeats()}. \\
+còn lại & Khách hàng & Form \emph{Đặt chỗ} (số chỗ, tổng tiền dự kiến) $\to$ \code{bookSeats()}. \\
 \hline
 \end{tabularx}
 \end{table}
 
-\shot{create_tour.png}{Giao diện Điều hành: ví Account 3 được nhận diện là \emph{Điều hành}, hiển thị form tạo tour (tổng số chỗ, giá vé/người)}{0.95}
+\shot{create_tour.png}{Giao diện Điều hành: Account 3 được nhận diện là \emph{Điều hành}, hiện form tạo tour}{0.9}
 
-\shot{cus_ui.png}{Giao diện Khách hàng: ví Account 2 được nhận diện là \emph{Khách hàng}, hiển thị form đặt chỗ và tổng thanh toán dự kiến}{0.95}
+\shot{cus_ui.png}{Giao diện Khách hàng: Account 2 được nhận diện là \emph{Khách hàng}, hiện form đặt chỗ}{0.9}
 
-Khi người dùng đổi tài khoản trong MetaMask, sự kiện \code{accountsChanged} được xử lý lại (\ref{sec:ch4}),
-\code{isOperator} được tính lại và giao diện tự chuyển giữa hai chế độ mà không cần tải lại trang.
+Khi đổi tài khoản trong MetaMask, sự kiện \code{accountsChanged} (Chương~\ref{sec:ch4}) làm \code{isOperator} được tính lại và
+giao diện chuyển chế độ mà không cần tải lại trang.
 
-\subsection{Kiểm tra dữ liệu đầu vào ở giao diện}
+\subsection{Kiểm tra dữ liệu đầu vào}
 
-Trước khi gửi giao dịch, các hàm \code{handleCreateTour} và \code{handleBookSeats} kiểm tra: đã kết nối ví chưa;
-số chỗ là số nguyên dương; số chỗ đặt không vượt \code{availableSeats}; giá vé lớn hơn 0; và (với tạo tour) ví hiện tại là điều hành.
-Ô nhập cũng đặt \code{min} và \code{max} (\code{max=availableSeats}) để trình duyệt chặn giá trị sai ngay khi nhập.
-Các kiểm tra này giúp báo lỗi sớm và tránh tốn phí gas cho giao dịch chắc chắn thất bại; tuy vậy,
-\textbf{lớp bảo vệ cuối cùng vẫn là các câu lệnh \code{require} trong smart contract} (\ref{sec:ch5}).
-
-\subsection{Chế độ mô phỏng}
-
-Nếu \code{CONTRACT\_ADDRESS} rỗng, ứng dụng chạy ở \emph{chế độ mô phỏng}: dữ liệu giữ trong bộ nhớ (\code{mockBookingsByWallet})
-và không gửi giao dịch lên chuỗi. Chế độ này giúp thiết kế giao diện khi chưa có hợp đồng; bản nộp dùng chế độ \emph{On-Chain}
-(thanh biểu ngữ màu xanh trong các ảnh chụp).
+Trước khi gửi giao dịch, giao diện kiểm tra: đã kết nối ví; số chỗ là số nguyên dương và không vượt \code{availableSeats}
+(ô nhập có \code{min}, \code{max=availableSeats}); giá vé $>0$; ví hiện tại là điều hành (với tạo tour). Việc này báo lỗi sớm và tránh tốn gas cho
+giao dịch chắc chắn thất bại; lớp bảo vệ cuối cùng vẫn là \code{require} trong hợp đồng (Chương~\ref{sec:ch5}).
+Nếu \code{CONTRACT\_ADDRESS} rỗng, ứng dụng chạy \emph{chế độ mô phỏng} (dữ liệu trong bộ nhớ, không gửi giao dịch).

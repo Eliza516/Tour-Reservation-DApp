@@ -1,9 +1,8 @@
 \section{Thiết kế \& Triển khai Smart Contract (Solidity --- Backend phi tập trung)}
 \label{sec:ch5}
 
-Smart contract \code{TourReservation} (tệp \code{TourReservation.sol}, giấy phép MIT, \code{pragma solidity \^{}0.8.20})
-đóng vai trò ``backend phi tập trung'': nó vừa lưu dữ liệu, vừa thực thi các quy tắc nghiệp vụ, vừa giữ tiền của khách.
-Toàn văn mã nguồn có ở \ref{sec:appendix}.
+Hợp đồng \code{TourReservation} (\code{pragma solidity \^{}0.8.20}, giấy phép MIT) vừa lưu dữ liệu, vừa thực thi quy tắc nghiệp vụ, vừa giữ tiền của khách.
+Toàn văn mã ở Phụ lục~\ref{sec:appendix}.
 
 \subsection{Biến trạng thái và cấu trúc dữ liệu}
 
@@ -17,60 +16,54 @@ Toàn văn mã nguồn có ở \ref{sec:appendix}.
 \hline
 \rowcolor{navyblue}\textcolor{white}{\textbf{Biến}} & \textcolor{white}{\textbf{Kiểu}} & \textcolor{white}{\textbf{Ý nghĩa}} \\
 \hline
-\code{operator} & \code{address public} & Ví điều hành, gán bằng \code{msg.sender} của người triển khai trong \code{constructor}. \\
+\code{operator} & \code{address public} & Ví điều hành, gán \code{msg.sender} của người deploy trong \code{constructor}. \\
 \hline
 \rowcolor{rowgray}
-\code{totalSeats} & \code{uint256 public} & Tổng số chỗ của tour (ví dụ 25). \\
+\code{totalSeats} & \code{uint256 public} & Tổng số chỗ (ví dụ 25). \\
 \hline
-\code{availableSeats} & \code{uint256 public} & Số chỗ còn trống; giảm dần khi có người đặt. \\
-\hline
-\rowcolor{rowgray}
-\code{ticketPrice} & \code{uint256 public} & Giá một vé tính bằng \emph{wei}; 0,08 ETH $=80\,000\,000\,000\,000\,000$ wei $= 8\times10^{16}$. \\
-\hline
-\code{isTourActive} & \code{bool public} & \code{true} sau khi điều hành gọi \code{createTour()}; chặn đặt chỗ khi chưa có tour. \\
+\code{availableSeats} & \code{uint256 public} & Số chỗ còn trống, giảm dần khi có người đặt. \\
 \hline
 \rowcolor{rowgray}
-\code{bookings} & \code{mapping(address => uint256) private} & \textbf{Số vé đã đặt theo từng ví}. Khóa là địa chỉ ví, giá trị là số chỗ. \\
+\code{ticketPrice} & \code{uint256 public} & Giá vé tính bằng \emph{wei}; 0,08 ETH $=8\times10^{16}$ wei. \\
+\hline
+\code{isTourActive} & \code{bool public} & \code{true} sau \code{createTour()}; chặn đặt chỗ khi chưa có tour. \\
+\hline
+\rowcolor{rowgray}
+\code{bookings} & \code{mapping(address => uint256) private} & \textbf{Số vé đã đặt theo từng ví}: khóa là địa chỉ, giá trị là số chỗ (mặc định 0). \\
 \hline
 \end{tabularx}
 \end{table}
 
-\textbf{Mapping lưu vé theo ví.} \code{mapping(address => uint256) private bookings} là bảng băm trên chuỗi: với mỗi địa chỉ,
-giá trị mặc định là 0 và tăng lên khi ví đó đặt chỗ. Từ khóa \code{private} nghĩa là các hợp đồng khác không đọc trực tiếp được
-biến này; việc xem số vé thực hiện qua hàm \code{getMyBookings()}. (Lưu ý: \code{private} chỉ giới hạn truy cập ở mức mã, dữ liệu trên
-blockchain vẫn công khai về mặt kỹ thuật.)
-
-\textbf{Sự kiện (event).} \code{TourCreated} được phát khi tạo tour; \code{SeatsBooked} (với \code{customer} được \code{indexed})
-được phát mỗi lần đặt chỗ, giúp ứng dụng bên ngoài lọc lịch sử đặt chỗ theo ví mà không cần lưu thêm dữ liệu.
-
-\textbf{Modifier \code{onlyOperator}.} Gắn vào hàm để kiểm tra \code{msg.sender == operator} trước khi chạy thân hàm
-(\code{\_;}). Nếu sai, giao dịch bị hoàn tác (revert) với thông báo \emph{``Chi dieu hanh moi co quyen thuc hien''}.
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{Mapping \code{bookings}:} bảng băm trên chuỗi, \code{private} nên hợp đồng khác không đọc trực tiếp; số vé được xem qua \code{getMyBookings()}.
+          (\code{private} chỉ giới hạn truy cập ở mức mã; dữ liệu trên blockchain vẫn công khai về mặt kỹ thuật.)
+    \item \textbf{Sự kiện:} \code{TourCreated} khi tạo tour; \code{SeatsBooked} (với \code{customer} là \code{indexed}) mỗi lần đặt chỗ, cho phép lọc lịch sử theo ví
+          mà không cần lưu thêm dữ liệu.
+    \item \textbf{\code{onlyOperator}:} kiểm tra \code{msg.sender == operator} trước thân hàm (\code{\_;}); sai thì revert
+          ``Chi dieu hanh moi co quyen thuc hien''.
+\end{itemize}
 
 \subsection{Hàm \code{createTour()}}
 
 \lstinputlisting[style=SolStyle, firstline=26, lastline=37,
-  caption={Hàm \code{createTour} --- chỉ điều hành, số chỗ và giá vé dương}]{Code/TourReservation.sol}
+  caption={Hàm \code{createTour}}]{Code/TourReservation.sol}
 
-\begin{itemize}[leftmargin=1.5em]
-    \item Có \code{onlyOperator}: chỉ ví điều hành gọi được (ràng buộc 1 của đề).
-    \item \code{require(\_totalSeats > 0)} và \code{require(\_ticketPrice > 0)}: số chỗ và giá vé phải dương.
-    \item Ghi \code{totalSeats}, \code{availableSeats = \_totalSeats}, \code{ticketPrice}, \code{isTourActive = true}
-          và phát sự kiện \code{TourCreated}.
-\end{itemize}
+Có \code{onlyOperator}; \code{require} bảo đảm số chỗ và giá vé dương; sau đó ghi \code{totalSeats}, \code{availableSeats = \_totalSeats},
+\code{ticketPrice}, \code{isTourActive = true} và phát \code{TourCreated}.
 
 \subsection{Hàm \code{bookSeats()}}
 
 \lstinputlisting[style=SolStyle, firstline=39, lastline=50,
-  caption={Hàm \code{bookSeats} --- đặt chỗ và thanh toán}]{Code/TourReservation.sol}
+  caption={Hàm \code{bookSeats}}]{Code/TourReservation.sol}
 
-Hàm có từ khóa \code{payable} nên nhận được ETH kèm giao dịch (\code{msg.value}). Bốn câu lệnh \code{require} theo đúng thứ tự kiểm tra:
+\code{payable} cho phép nhận ETH (\code{msg.value}). Bốn điều kiện kiểm tra theo thứ tự:
 
 \begin{table}[H]
 \centering
 \caption{Các điều kiện \code{require} của \code{bookSeats()}}
 \begin{tabularx}{\linewidth}{|c|l|X|}
 \hline
-\rowcolor{navyblue}\textcolor{white}{\textbf{STT}} & \textcolor{white}{\textbf{Điều kiện}} & \textcolor{white}{\textbf{Thông báo khi vi phạm (revert)}} \\
+\rowcolor{navyblue}\textcolor{white}{\textbf{STT}} & \textcolor{white}{\textbf{Điều kiện}} & \textcolor{white}{\textbf{Thông báo khi revert}} \\
 \hline
 1 & \code{isTourActive} & ``Hien chua co tour nao duoc mo'' \\
 \hline
@@ -85,43 +78,32 @@ Hàm có từ khóa \code{payable} nên nhận được ETH kèm giao dịch (\c
 \end{tabularx}
 \end{table}
 
-Nếu cả bốn điều kiện đúng, hợp đồng cập nhật trạng thái: \code{availableSeats -= \_seats} (giảm chỗ trống) và
-\code{bookings[msg.sender] += \_seats} (cộng dồn số vé của ví), rồi phát sự kiện \code{SeatsBooked}.
-Vì \code{\_seats} kiểu \code{uint256} nên không thể âm; Solidity $\ge$ 0.8 tự động revert khi tràn số, nên phép nhân
-\code{\_seats * ticketPrice} an toàn. Điều kiện 4 yêu cầu trả \emph{đúng} bằng, không cho trả thừa hay thiếu, nên hợp đồng
-không cần tính tiền thừa.
+Khi đủ điều kiện: \code{availableSeats -= \_seats}, \code{bookings[msg.sender] += \_seats}, phát \code{SeatsBooked}.
+\code{\_seats} kiểu \code{uint256} nên không âm; Solidity $\ge$ 0.8 tự revert khi tràn số nên phép nhân an toàn;
+điều kiện 4 đòi hỏi trả \emph{đúng} bằng nên không phải xử lý tiền thừa.
 
 \subsection{Hàm \code{getAvailableSeats()} và \code{getMyBookings()}}
 
 \lstinputlisting[style=SolStyle, firstline=52, lastline=60,
   caption={Hai hàm đọc dữ liệu}]{Code/TourReservation.sol}
 
-Cả hai là hàm \code{view} nên chạy miễn phí. \code{getMyBookings()} dùng \code{msg.sender} làm khóa tra \code{bookings};
-mỗi ví chỉ xem được số vé \emph{của chính mình} thông qua hàm này.
+Cả hai là \code{view} (miễn phí). \code{getMyBookings()} tra \code{bookings} bằng \code{msg.sender}: mỗi ví chỉ xem được số vé của chính mình.
 
-\subsection{Quá trình Compile \& Deploy trên Remix IDE}
+\subsection{Compile \& Deploy trên Remix IDE}
 
-\subsubsection{Biên dịch (Compile)}
+\subsubsection{Biên dịch}
 
-\begin{enumerate}[leftmargin=1.8em]
-    \item Mở Remix IDE, tạo tệp \code{contracts/TourReservation.sol} và dán mã nguồn.
-    \item Mở tab \emph{Solidity Compiler}, chọn trình biên dịch \textbf{0.8.34+commit.80d5c536} (phù hợp \code{\^{}0.8.20}), nhấn \emph{Compile}.
-    \item Biên dịch thành công khi dấu tích xanh xuất hiện ở biểu tượng Compile.
-\end{enumerate}
+Tạo \code{contracts/TourReservation.sol} trong Remix, chọn trình biên dịch \textbf{0.8.34+commit.80d5c536} (phù hợp \code{\^{}0.8.20}) và nhấn \emph{Compile}.
 
-\shot{compile.png}{Remix IDE: biên dịch thành công \code{TourReservation.sol} và kết quả triển khai lên Sepolia (log xác minh mã nguồn trên Blockscout/Sourcify)}{0.95}
+\shot{compile.png}{Remix IDE: biên dịch \code{TourReservation.sol} thành công và triển khai lên Sepolia}{0.9}
 
-\subsubsection{Triển khai (Deploy)}
+\subsubsection{Triển khai}
 
-\begin{enumerate}[leftmargin=1.8em]
-    \item Tab \emph{Deploy \& Run Transactions}: chọn \textbf{Environment = Browser Extension} (MetaMask, mạng Sepolia).
-          Ví triển khai là \textbf{Account 3} --- ví này tự động trở thành \emph{operator}.
-    \item Nhấn \emph{Deploy}. MetaMask hiện cửa sổ \emph{Deploy a contract} với phí mạng ước tính khoảng 0,0073 SepoliaETH; nhấn \emph{Confirm} để ký.
-    \item Sau khi giao dịch được đưa vào khối, Remix hiển thị hợp đồng trong mục \emph{Deployed Contracts} cùng các hàm
-          \code{bookSeats}, \code{createTour}, \dots\ để gọi thử.
-\end{enumerate}
+Tab \emph{Deploy \& Run}: Environment $=$ \textbf{Browser Extension} (MetaMask, mạng Sepolia). Ví deploy là \textbf{Account 3}, tự động thành \emph{operator}.
+Nhấn \emph{Deploy}, MetaMask hiện \emph{Deploy a contract} (phí khoảng 0,0073 SepoliaETH), nhấn \emph{Confirm} để ký.
+Hợp đồng xuất hiện trong \emph{Deployed Contracts} cùng các hàm để gọi thử.
 
-\shot{confirm_deloy.png}{MetaMask yêu cầu xác nhận triển khai hợp đồng (\emph{Deploy a contract}) trên Sepolia, phí mạng $\approx$ 0,0073 SepoliaETH}{0.95}
+\shot{confirm_deloy.png}{MetaMask xác nhận deploy hợp đồng trên Sepolia, phí mạng $\approx$ 0,0073 SepoliaETH}{0.9}
 
 \begin{table}[H]
 \centering
@@ -135,28 +117,21 @@ Mạng & Ethereum Sepolia Testnet \\
 \rowcolor{rowgray}
 Trình biên dịch & Solidity \code{0.8.34+commit.80d5c536} (Remix 2.6.14) \\
 \hline
-Ví triển khai / điều hành (Account 3) & \code{0x04fd74c1feb8b77b5f8A6a3f1be546778D06BBa2} \\
+Ví deploy / điều hành (Account 3) & \code{0x04fd74c1feb8b77b5f8A6a3f1be546778D06BBa2} \\
 \hline
 \rowcolor{rowgray}
 Địa chỉ hợp đồng dùng trong DApp & \code{0xAa5AfB26CFcc5Fdb6EedAeff80A6E17bD0D0902e} \\
 \hline
-Mã giao dịch (hash) lần triển khai trong ảnh chụp & \code{0xdb4d19e8fdfc830b3ceb\allowbreak 14269ff4d0f0fda9ef7d02\allowbreak 713423952dfaadb129a936} \\
+Hash giao dịch deploy (ảnh chụp) & \code{0xdb4d19e8fdfc830b3ceb\allowbreak 14269ff4d0f0fda9ef7d02\allowbreak 713423952dfaadb129a936} \\
 \hline
 \rowcolor{rowgray}
-Khối (block) & 12139637 \\
-\hline
-Gas sử dụng khi deploy (\emph{transaction cost}) & 4\,858\,715 gas \\
+Khối / gas deploy & 12139637 / 4\,858\,715 gas \\
 \hline
 \end{tabularx}
 \end{table}
 
-\shot{gas.png}{Chi tiết giao dịch triển khai trong Remix: trạng thái \emph{mined and execution completed}, mã giao dịch, số khối và chi phí 4\,858\,715 gas}{0.8}
+\shot{gas.png}{Chi tiết giao dịch deploy trong Remix: \emph{mined and execution completed}, hash, số khối, 4\,858\,715 gas}{0.75}
 
-Sau khi triển khai, Etherscan trên Sepolia ghi nhận hợp đồng cùng các giao dịch gọi hàm (Hình~\ref{fig:eth_smartcontract.png} ở \ref{sec:ch7}).
-Trong quá trình phát triển, hợp đồng được triển khai nhiều lần (Remix liệt kê nhiều mục trong \emph{Deployed Contracts});
-bản được dùng cho DApp là địa chỉ đã khai báo trong \code{CONTRACT\_ADDRESS}.
-
-\begin{infobox}
-\textbf{Sau khi deploy:} sao chép địa chỉ hợp đồng từ Remix, dán vào \code{CONTRACT\_ADDRESS} trong
-\code{frontend/src/config/contract.js}. ABI chỉ cần cập nhật khi thay đổi chữ ký hàm của hợp đồng.
-\end{infobox}
+Trong quá trình phát triển hợp đồng được deploy nhiều lần (Remix liệt kê nhiều mục trong \emph{Deployed Contracts});
+bản dùng cho DApp là địa chỉ khai báo trong \code{CONTRACT\_ADDRESS}. Sau mỗi lần deploy cần dán địa chỉ mới vào
+\code{frontend/src/config/contract.js}; ABI chỉ đổi khi thay đổi chữ ký hàm.

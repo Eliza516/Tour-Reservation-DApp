@@ -3,26 +3,21 @@
 
 \subsection{Bối cảnh bài toán}
 
-Các hệ thống đặt chỗ truyền thống (tour du lịch, vé sự kiện, \dots) thường phụ thuộc vào một bên trung gian
-quản lý cơ sở dữ liệu tập trung. Người mua phải tin rằng bên trung gian ghi nhận đúng số chỗ đã bán, không sửa
-dữ liệu và hoàn trả tiền khi cần. Công nghệ blockchain cho phép chuyển logic nghiệp vụ này vào một
-\textbf{hợp đồng thông minh (smart contract)}: dữ liệu và quy tắc nghiệp vụ được lưu trên chuỗi, mọi giao dịch
-đều công khai, bất biến và có thể kiểm chứng.
+Hệ thống đặt chỗ truyền thống phụ thuộc vào một bên trung gian giữ cơ sở dữ liệu: người mua phải tin rằng số chỗ đã bán được ghi đúng
+và không bị sửa. Với \textbf{hợp đồng thông minh (smart contract)}, dữ liệu và quy tắc nghiệp vụ nằm trên blockchain nên công khai,
+bất biến và kiểm chứng được.
 
-\textbf{Đề 36 --- Tour Reservation DApp} đặt ra tình huống như sau: một công ty du lịch mở một tour có
-\textbf{25 chỗ}, giá \textbf{0,08 ETH/người}; khách hàng đặt chỗ trước bằng cách thanh toán trực tiếp bằng ETH
-cho hợp đồng. Hệ thống gồm hai nhóm người dùng:
+\textbf{Đề 36 --- Tour Reservation DApp:} công ty du lịch mở một tour \textbf{25 chỗ}, giá \textbf{0,08 ETH/người}; khách thanh toán
+trực tiếp bằng ETH cho hợp đồng để đặt chỗ trước. Có hai vai trò:
 
 \begin{itemize}[leftmargin=1.5em]
-    \item \textbf{Điều hành (operator):} ví triển khai hợp đồng, có quyền tạo/mở tour.
+    \item \textbf{Điều hành (operator):} ví triển khai hợp đồng, có quyền tạo tour.
     \item \textbf{Khách hàng (customer):} mọi ví khác, có quyền đặt chỗ và xem số vé của mình.
 \end{itemize}
 
 \begin{infobox}
-\textbf{Lưu ý về tham số thử nghiệm.} Mặc định theo đề, tour có 25 chỗ và giá 0,08 ETH/người
-(tương đương $8 \times 10^{16}$ wei). Vì các ví thử nghiệm trên Sepolia không có đủ ETH test để đặt nhiều chỗ ở
-mức giá này, một số kịch bản trong \ref{sec:ch7} được chạy với tour \textbf{20 chỗ, giá 0,0001 ETH/người}.
-Logic hợp đồng không thay đổi; chỉ có hai tham số đầu vào của \code{createTour()} khác nhau.
+Do ví thử nghiệm trên Sepolia không đủ ETH test để đặt nhiều chỗ ở mức 0,08 ETH, một số kịch bản ở Chương~\ref{sec:ch7}
+chạy với tour \textbf{20 chỗ, giá 0,0001 ETH/người}. Logic hợp đồng không đổi; chỉ hai tham số của \code{createTour()} khác nhau.
 \end{infobox}
 
 \subsection{Các hàm chức năng bắt buộc}
@@ -34,23 +29,20 @@ Logic hợp đồng không thay đổi; chỉ có hai tham số đầu vào củ
 \hline
 \rowcolor{navyblue}\textcolor{white}{\textbf{Hàm}} & \textcolor{white}{\textbf{Người gọi}} & \textcolor{white}{\textbf{Chức năng}} \\
 \hline
-\code{createTour()}        & Điều hành & Tạo (mở) tour với tổng số chỗ và giá vé; khởi tạo số chỗ trống bằng tổng số chỗ. \\
+\code{createTour()}        & Điều hành & Tạo tour: tổng số chỗ, giá vé; số chỗ trống $=$ tổng số chỗ. \\
 \hline
 \rowcolor{rowgray}
-\code{bookSeats()}         & Khách hàng & Đặt một số chỗ nguyên dương và thanh toán đúng số ETH; cập nhật chỗ trống và số vé theo ví. \\
+\code{bookSeats()}         & Khách hàng & Đặt chỗ và trả đúng số ETH; cập nhật chỗ trống và số vé theo ví. \\
 \hline
-\code{getAvailableSeats()} & Mọi người (đọc) & Trả về số chỗ trống còn lại của tour. \\
+\code{getAvailableSeats()} & Đọc & Trả về số chỗ trống còn lại. \\
 \hline
 \rowcolor{rowgray}
-\code{getMyBookings()}     & Mọi người (đọc) & Trả về số chỗ mà \emph{ví đang gọi} đã đặt. \\
+\code{getMyBookings()}     & Đọc & Trả về số chỗ mà \emph{ví đang gọi} đã đặt. \\
 \hline
 \end{tabularx}
 \end{table}
 
 \subsection{Các ràng buộc nghiệp vụ}
-
-Đề bài yêu cầu bốn nhóm ràng buộc. Bảng~\ref{tab:rules} cho thấy mỗi ràng buộc được hiện thực ở đâu
-trong hệ thống (chi tiết ở các chương sau).
 
 \begin{table}[H]
 \centering
@@ -59,29 +51,21 @@ trong hệ thống (chi tiết ở các chương sau).
 \hline
 \rowcolor{navyblue}\textcolor{white}{\textbf{STT}} & \textcolor{white}{\textbf{Ràng buộc theo đề}} & \textcolor{white}{\textbf{Hiện thực}} \\
 \hline
-1 & Chỉ điều hành mới được tạo tour, với số chỗ dương. &
-    Smart contract: \code{modifier onlyOperator} và \code{require(\_totalSeats > 0)}. Giao diện: chỉ hiển thị form tạo tour cho ví điều hành. \\
+1 & Chỉ điều hành tạo tour, số chỗ dương. &
+    \code{modifier onlyOperator}, \code{require(\_totalSeats > 0)}; giao diện chỉ hiện form tạo tour cho ví điều hành. \\
 \hline
 \rowcolor{rowgray}
 2 & Số chỗ đặt nguyên dương, không vượt chỗ trống, thanh toán đúng phí. &
-    Smart contract: \code{require(\_seats > 0)}, \code{require(\_seats <= availableSeats)}, \code{require(msg.value == \_seats * ticketPrice)}. Giao diện: kiểm tra trước khi gửi giao dịch. \\
+    \code{require(\_seats > 0)}, \code{require(\_seats <= availableSeats)}, \code{require(msg.value == \_seats * ticketPrice)}. \\
 \hline
-3 & Cập nhật số chỗ trống và số chỗ theo ví. &
-    \code{availableSeats -= \_seats;} và \code{bookings[msg.sender] += \_seats;} \\
+3 & Cập nhật chỗ trống và số chỗ theo ví. &
+    \code{availableSeats -= \_seats;} \quad \code{bookings[msg.sender] += \_seats;} \\
 \hline
 \rowcolor{rowgray}
-4 & Hiển thị giá tour, chỗ trống và vé đã đặt. &
-    Giao diện React: ba thẻ thống kê (giá vé, chỗ trống, vé đã đặt) đọc dữ liệu từ hợp đồng. \\
+4 & Hiển thị giá tour, chỗ trống, vé đã đặt. &
+    Ba thẻ thống kê trên giao diện React đọc từ hợp đồng. \\
 \hline
 \end{tabularx}
 \end{table}
 
-Ngoài các ràng buộc của đề, hợp đồng bổ sung hai ràng buộc an toàn: giá vé phải lớn hơn 0 khi tạo tour
-và không thể đặt chỗ khi chưa có tour nào được mở (\code{isTourActive}).
-
-\subsection{Phạm vi và mục tiêu của báo cáo}
-
-Báo cáo trình bày toàn bộ quá trình xây dựng DApp: kiến trúc hệ thống (\ref{sec:ch2}),
-giao diện React (\ref{sec:ch3}), kết nối MetaMask bằng web3.js (\ref{sec:ch4}), thiết kế và triển khai
-smart contract trên Remix (\ref{sec:ch5}), môi trường chạy và mạng blockchain (\ref{sec:ch6}),
-kiểm thử với ba ví (\ref{sec:ch7}) và kết luận (\ref{sec:ch8}).
+Hợp đồng bổ sung hai ràng buộc an toàn: giá vé phải lớn hơn 0 và không cho đặt chỗ khi chưa mở tour (\code{isTourActive}).

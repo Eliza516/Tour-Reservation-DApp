@@ -1,125 +1,70 @@
 \section{Kết nối Web3 \& Ví MetaMask (web3.js)}
 \label{sec:ch4}
 
-Toàn bộ mã giao tiếp với blockchain được gom trong tệp \code{src/utils/web3Client.js}; cấu hình hợp đồng nằm ở
-\code{src/config/contract.js}. Chương này mô tả cách ứng dụng kết nối MetaMask, đọc số dư, lắng nghe thay đổi tài khoản
-và gọi hàm đọc/ghi của smart contract.
+Mã giao tiếp blockchain nằm trong \code{src/utils/web3Client.js}; cấu hình hợp đồng ở \code{src/config/contract.js}.
 
-\subsection{Thông tin hợp đồng: \code{CONTRACT\_ADDRESS} và \code{CONTRACT\_ABI}}
+\subsection{\code{CONTRACT\_ADDRESS} và \code{CONTRACT\_ABI}}
 
-Để gọi một hợp đồng đã triển khai, web3.js cần hai thông tin:
-
+Để gọi hợp đồng đã deploy, web3.js cần:
 \begin{itemize}[leftmargin=1.5em]
-    \item \textbf{Địa chỉ hợp đồng} (\code{CONTRACT\_ADDRESS}) --- nơi hợp đồng nằm trên Sepolia:
-          \code{0xAa5AfB26CFcc5Fdb6EedAeff80A6E17bD0D0902e}.
-    \item \textbf{ABI (Application Binary Interface)} (\code{CONTRACT\_ABI}) --- mô tả tên hàm, kiểu tham số, kiểu trả về và
-          tính chất (\code{view}, \code{payable}, \code{nonpayable}) để web3.js mã hóa lời gọi.
+    \item \textbf{Địa chỉ hợp đồng} trên Sepolia: \code{0xAa5AfB26CFcc5Fdb6EedAeff80A6E17bD0D0902e}.
+    \item \textbf{ABI} --- mô tả tên hàm, kiểu tham số/trả về và tính chất (\code{view}, \code{payable}, \code{nonpayable}) để mã hóa lời gọi.
+          ABI khai báo bảy hàm: \code{operator}, \code{ticketPrice}, \code{totalSeats}, \code{createTour}, \code{bookSeats}
+          (\code{payable}), \code{getAvailableSeats}, \code{getMyBookings}.
 \end{itemize}
 
-ABI trong \code{contract.js} khai báo bảy hàm của hợp đồng: \code{operator}, \code{ticketPrice}, \code{totalSeats},
-\code{createTour}, \code{bookSeats}, \code{getAvailableSeats}, \code{getMyBookings}. Trong đó \code{bookSeats} có
-\code{stateMutability: "payable"} (nhận ETH), \code{createTour} là \code{nonpayable}, các hàm còn lại là \code{view}.
-
 \lstinputlisting[style=JSStyle, firstline=1, lastline=7,
-  caption={Địa chỉ hợp đồng và thông số tour mặc định (\code{config/contract.js})}]{Code/contract.js}
+  caption={Địa chỉ hợp đồng và tour mặc định (\code{config/contract.js})}]{Code/contract.js}
 
 \subsection{Kết nối MetaMask bằng \code{eth\_requestAccounts}}
 
-MetaMask chèn đối tượng \code{window.ethereum} (chuẩn EIP-1193~\cite{eip1193}) vào trang web.
-Hàm \code{hasMetaMask()} kiểm tra sự tồn tại của đối tượng này; \code{createWeb3Instance()} bọc nó thành một đối tượng
-\code{Web3}. Việc xin quyền truy cập tài khoản do hàm \code{connectMetaMaskWallet()} thực hiện:
+MetaMask chèn \code{window.ethereum} (chuẩn EIP-1193~\cite{eip1193}) vào trang. \code{createWeb3Instance()} bọc nó thành \code{new Web3(window.ethereum)};
+\code{connectMetaMaskWallet()} xin quyền tài khoản:
 
 \lstinputlisting[style=JSStyle, firstline=4, lastline=31,
   caption={Kết nối MetaMask và lấy số dư (\code{web3Client.js})}]{Code/web3Client.js}
 
-Các bước chính:
-
 \begin{enumerate}[leftmargin=1.8em]
-    \item \code{window.ethereum.request(\{ method: "eth\_requestAccounts" \})} --- MetaMask hiện cửa sổ xin phép kết nối;
-          trả về danh sách địa chỉ ví được người dùng cho phép. Ứng dụng dùng tài khoản đầu tiên \code{accounts[0]}.
-    \item \code{web3.eth.getBalance(account)} --- lấy số dư theo \emph{wei}; \code{web3.utils.fromWei(balanceWei, "ether")}
-          đổi sang ETH (1 ETH $= 10^{18}$ wei) và làm tròn 4 chữ số thập phân để hiển thị.
-    \item \code{web3.eth.getChainId()} --- lấy mã mạng; kết quả (kiểu \code{BigInt} trong web3.js v4) được ép sang \code{Number}.
-          Hàm \code{getNetworkName(chainId)} ánh xạ mã này sang tên dễ đọc (ví dụ \code{11155111} $\rightarrow$ ``Sepolia Testnet'').
+    \item \code{request(\{ method: "eth\_requestAccounts" \})} --- MetaMask xin phép người dùng, trả về danh sách ví; dùng \code{accounts[0]}.
+    \item \code{getBalance} trả số dư theo \emph{wei}; \code{fromWei(..., "ether")} đổi sang ETH (1 ETH $=10^{18}$ wei).
+    \item \code{getChainId()} trả mã mạng (\code{BigInt} trong web3.js v4, ép sang \code{Number}); \code{getNetworkName()} ánh xạ
+          \code{11155111} $\to$ ``Sepolia Testnet''.
 \end{enumerate}
 
-Nếu chưa cài MetaMask hoặc người dùng không chọn tài khoản, hàm ném lỗi với thông báo tiếng Việt; giao diện bắt lỗi này
-và hiển thị trong khung thông báo màu đỏ.
+Lỗi (chưa cài MetaMask, không chọn tài khoản) được ném với thông báo tiếng Việt và hiển thị ở khung thông báo đỏ.
 
-\subsection{Lắng nghe sự kiện đổi tài khoản và đổi mạng}
-
-Người dùng có thể đổi tài khoản hay đổi mạng trong MetaMask bất cứ lúc nào. Ứng dụng đăng ký hai bộ lắng nghe trong
-\code{useEffect} (và hủy đăng ký khi component bị gỡ để tránh rò rỉ):
+\subsection{Lắng nghe \code{accountsChanged} và \code{chainChanged}}
 
 \lstinputlisting[style=JSStyle, firstline=76, lastline=112,
-  caption={Lắng nghe \code{accountsChanged} và \code{chainChanged} (\code{App.jsx})}]{Code/App.jsx}
+  caption={Đăng ký bộ lắng nghe sự kiện ví (\code{App.jsx})}]{Code/App.jsx}
 
 \begin{itemize}[leftmargin=1.5em]
-    \item \textbf{\code{accountsChanged}:} nếu danh sách rỗng (người dùng ngắt kết nối) thì xóa trạng thái ví;
-          ngược lại lấy tài khoản mới, đọc lại số dư/mạng, rồi gọi \code{syncOnChainData} để đọc lại dữ liệu hợp đồng
-          \emph{theo ví mới}. Nhờ đó, giao diện chuyển đúng giữa Điều hành và Khách hàng, và số vé hiển thị đúng ví.
-    \item \textbf{\code{chainChanged}:} khi đổi mạng, ứng dụng tải lại trang (\code{window.location.reload()}) --- cách xử lý
-          được MetaMask khuyến nghị để tránh dùng dữ liệu của mạng cũ.
+    \item \textbf{\code{accountsChanged}:} danh sách rỗng $\Rightarrow$ ngắt kết nối, xóa trạng thái; ngược lại đọc lại số dư, mạng và
+          gọi \code{syncOnChainData} \emph{theo ví mới}, nên vai trò và số vé luôn đúng với ví đang chọn.
+    \item \textbf{\code{chainChanged}:} tải lại trang (khuyến nghị của MetaMask) để không dùng dữ liệu mạng cũ.
+    \item Hàm dọn dẹp của \code{useEffect} gọi \code{removeListener} để tránh đăng ký trùng.
 \end{itemize}
 
-\subsection{Gọi hàm \emph{đọc} của hợp đồng}
+\subsection{Gọi hàm đọc}
 
-Đối tượng hợp đồng được tạo bởi \code{getTourContract(web3)}, tức \code{new web3.eth.Contract(CONTRACT\_ABI, CONTRACT\_ADDRESS)}.
-Hàm \code{syncOnChainData} đọc năm giá trị song song bằng \code{Promise.all}:
+\code{getTourContract(web3)} tạo \code{new web3.eth.Contract(CONTRACT\_ABI, CONTRACT\_ADDRESS)}. \code{syncOnChainData} đọc năm giá trị song song:
 
 \lstinputlisting[style=JSStyle, firstline=45, lastline=63,
   caption={Đọc dữ liệu từ hợp đồng (\code{App.jsx})}]{Code/App.jsx}
 
-Điểm đáng chú ý là lời gọi \code{getMyBookings().call(\{ from: activeAccount \})}: hàm này trả về
-\code{bookings[msg.sender]}, nên phải truyền \code{from} để \code{msg.sender} chính là ví đang xem; nếu không, kết quả sẽ là của
-địa chỉ mặc định. Lời gọi \code{.call()} chạy trên nút RPC, \textbf{không tạo giao dịch, không tốn gas, không cần ký}.
+\code{getMyBookings().call(\{ from: activeAccount \})} phải truyền \code{from} vì hàm trả về \code{bookings[msg.sender]}.
+\code{.call()} chạy trên nút RPC: \textbf{không tạo giao dịch, không tốn gas, không cần ký}.
 
-\subsection{Gọi hàm \emph{ghi} của hợp đồng}
+\subsection{Gọi hàm ghi}
 
-Hàm ghi dùng \code{.send(\{ from, value \})}. Lúc này MetaMask hiện cửa sổ \emph{Transaction request} cho người dùng xem
-số ETH, phí gas ước tính và xác nhận ký (xem ảnh ở \ref{sec:ch7}).
+Hàm ghi dùng \code{.send(\{ from, value \})}; MetaMask hiện \emph{Transaction request} để người dùng xem ETH, phí gas và xác nhận.
 
 \lstinputlisting[style=JSStyle, firstline=203, lastline=213,
   caption={Gửi giao dịch \code{bookSeats} kèm ETH (\code{App.jsx})}]{Code/App.jsx}
 
-Hai điểm kỹ thuật:
-
 \begin{itemize}[leftmargin=1.5em]
-    \item \textbf{Tính tiền bằng số nguyên lớn:} số ETH phải gửi là $\texttt{seats} \times \texttt{ticketPrice}$
-          tính theo wei. Mã dùng \code{BigInt} thay vì số thực để tránh sai số làm tròn; nếu \code{msg.value} lệch dù chỉ 1 wei,
-          hợp đồng sẽ revert với thông báo ``Thanh toan khong dung phi''. (Chuỗi hiển thị \code{totalCostEth} chỉ để hiện cho người dùng.)
-    \item \textbf{Đồng bộ lại sau giao dịch:} khi \code{.send()} hoàn tất (giao dịch đã được đưa vào khối), ứng dụng đọc lại số dư ví và gọi
-          \code{syncOnChainData}, nên các thẻ thống kê luôn phản ánh trạng thái mới nhất trên chuỗi.
+    \item \textbf{Tính tiền bằng \code{BigInt}:} số wei $=\texttt{seats}\times\texttt{ticketPrice}$; dùng số nguyên lớn để tránh sai số số thực.
+          Lệch dù 1 wei, hợp đồng revert ``Thanh toan khong dung phi''.
+    \item \textbf{Đồng bộ sau giao dịch:} khi \code{.send()} xong, ứng dụng đọc lại số dư và gọi \code{syncOnChainData}.
+    \item \code{createTour} đổi giá vé ETH $\to$ wei bằng \code{toWei(price, "ether")} rồi gọi \code{createTour(seats, priceWei).send(\{ from \})}.
 \end{itemize}
-
-Tương tự, \code{createTour} chuyển giá vé từ ETH sang wei bằng \code{web3.utils.toWei(price, "ether")} rồi gọi
-\code{createTour(seats, priceWei).send(\{ from: account \})}.
-
-\subsection{Tóm tắt các hàm trong \code{web3Client.js}}
-
-\begin{table}[H]
-\centering
-\caption{Các hàm tiện ích Web3}
-\begin{tabularx}{\linewidth}{|l|X|}
-\hline
-\rowcolor{navyblue}\textcolor{white}{\textbf{Hàm}} & \textcolor{white}{\textbf{Mục đích}} \\
-\hline
-\code{hasMetaMask()} & Kiểm tra trình duyệt có \code{window.ethereum} hay không. \\
-\hline
-\rowcolor{rowgray}
-\code{createWeb3Instance()} & Tạo \code{new Web3(window.ethereum)}; ném lỗi nếu chưa cài MetaMask. \\
-\hline
-\code{connectMetaMaskWallet()} & Gọi \code{eth\_requestAccounts}, trả về \code{web3}, \code{account}, số dư ETH và \code{chainId}. \\
-\hline
-\rowcolor{rowgray}
-\code{getWalletSnapshot()} & Đọc lại số dư và mạng của một ví (dùng sau giao dịch hoặc khi đổi tài khoản). \\
-\hline
-\code{getTourContract()} & Tạo đối tượng hợp đồng từ \code{CONTRACT\_ABI} và \code{CONTRACT\_ADDRESS}. \\
-\hline
-\rowcolor{rowgray}
-\code{formatShortAddress()} & Rút gọn địa chỉ dạng \code{0x04fd...bba2} để hiển thị. \\
-\hline
-\code{getNetworkName()} & Đổi \code{chainId} thành tên mạng (Sepolia, Mainnet, Hardhat, \dots). \\
-\hline
-\end{tabularx}
-\end{table}

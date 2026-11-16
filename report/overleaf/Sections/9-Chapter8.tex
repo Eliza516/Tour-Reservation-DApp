@@ -3,43 +3,33 @@
 
 \subsection{Kết quả đạt được}
 
-Dự án đã xây dựng hoàn chỉnh một DApp đặt chỗ tour du lịch chạy trên Ethereum Sepolia, đáp ứng đủ yêu cầu của Đề 36:
-
 \begin{itemize}[leftmargin=1.5em]
-    \item \textbf{Smart contract} \code{TourReservation} (Solidity \code{\^{}0.8.20}) hiện thực bốn hàm \code{createTour()}, \code{bookSeats()},
-          \code{getAvailableSeats()}, \code{getMyBookings()}; lưu số vé theo ví bằng \code{mapping}; kiểm soát quyền điều hành bằng \code{onlyOperator};
-          kiểm tra số chỗ dương, không vượt chỗ trống và thanh toán đúng phí bằng \code{require}; phát sự kiện \code{TourCreated}, \code{SeatsBooked}.
-    \item \textbf{Frontend} React + Vite + web3.js tự nhận diện vai trò (\code{isOperator}) để tách giao diện Điều hành và Khách hàng,
-          hiển thị giá vé, chỗ trống, vé đã đặt, đồng bộ dữ liệu sau mỗi giao dịch và khi đổi tài khoản.
-    \item \textbf{Kết nối Web3} qua MetaMask (\code{eth\_requestAccounts}, \code{accountsChanged}, \code{chainChanged}); giao dịch được ký trong ví, phí gas do người gửi trả.
-    \item \textbf{Kiểm thử thực nghiệm} trên Sepolia với ba ví (Điều hành, Khách hàng 1, Khách hàng 2) cho thấy các ràng buộc nghiệp vụ được đáp ứng
-          và các tình huống lỗi được chặn ở cả ba lớp: giao diện, ví MetaMask và smart contract.
+    \item \textbf{Smart contract} \code{TourReservation} (Solidity \code{\^{}0.8.20}) hiện thực \code{createTour()}, \code{bookSeats()}, \code{getAvailableSeats()},
+          \code{getMyBookings()}; lưu vé theo ví bằng \code{mapping}; phân quyền bằng \code{onlyOperator}; kiểm tra bằng \code{require}; phát sự kiện \code{TourCreated}, \code{SeatsBooked}.
+    \item \textbf{Frontend} React + Vite + web3.js tự nhận diện vai trò (\code{isOperator}), tách giao diện Điều hành/Khách hàng, hiển thị giá vé, chỗ trống, vé đã đặt
+          và đồng bộ lại sau mỗi giao dịch hoặc khi đổi tài khoản.
+    \item \textbf{Kết nối MetaMask} (\code{eth\_requestAccounts}, \code{accountsChanged}, \code{chainChanged}); giao dịch được ký trong ví, gas do người gửi trả.
+    \item \textbf{Kiểm thử} trên Sepolia với ba ví cho thấy các ràng buộc nghiệp vụ được đáp ứng và lỗi được chặn ở cả giao diện, ví và hợp đồng.
 \end{itemize}
 
-Qua dự án, có thể thấy lợi thế của kiến trúc DApp: quy tắc nghiệp vụ nằm trong mã hợp đồng nên minh bạch và không thể bị chỉnh sửa tùy tiện sau khi triển khai;
-tiền của khách được hợp đồng giữ và mọi giao dịch đều tra cứu được công khai trên Etherscan.
-
-\subsection{Hạn chế hiện tại}
+\subsection{Hạn chế}
 
 \begin{itemize}[leftmargin=1.5em]
-    \item \textbf{Chưa có cách rút tiền:} số ETH thu từ vé nằm trong hợp đồng nhưng không có hàm để Điều hành rút, nên tiền bị khóa trong hợp đồng.
-    \item \textbf{Không hủy vé/hoàn tiền:} khách đã đặt không thể hủy.
-    \item \textbf{Số vé theo ví chỉ xem được qua ví đó:} chưa có danh sách khách hàng hay lịch sử đặt chỗ trên giao diện.
+    \item \textbf{Chưa có hàm rút tiền:} ETH thu từ vé nằm trong hợp đồng, Điều hành không rút được.
+    \item \textbf{Không hủy vé/hoàn tiền.}
+    \item \textbf{Chưa có danh sách khách hàng hoặc lịch sử đặt chỗ} trên giao diện.
     \item \textbf{Chưa có kiểm thử tự động} cho hợp đồng (hiện kiểm thử thủ công trên Sepolia).
 \end{itemize}
 
 \subsection{Hướng phát triển}
 
 \begin{enumerate}[leftmargin=1.8em]
-    \item \textbf{Hàm \code{withdraw()}:} cho phép riêng Điều hành rút ETH về ví của mình (\code{onlyOperator}), có thể chỉ cho phép sau ngày khởi hành tour.
-          Nên dùng mẫu \emph{pull payment} và kiểm tra--cập nhật--chuyển tiền (\emph{checks-effects-interactions}) để tránh tấn công tái nhập (reentrancy).
-    \item \textbf{Nhiều tour theo \code{tourId}:} định nghĩa \code{struct Tour \{ totalSeats; availableSeats; ticketPrice; departureTime; active; \}}, lưu bằng
-          \code{mapping(uint256 => Tour)}, và số vé theo hai khóa \code{mapping(uint256 => mapping(address => uint256))}. Khi đó
-          \code{getAvailableSeats(tourId)} và \code{getMyBookings(tourId)} nhận thêm tham số, giao diện có danh sách tour để chọn.
-    \item \textbf{Hủy vé/hoàn tiền:} thêm hàm \code{cancelBooking(tourId, seats)} hoàn lại ETH theo chính sách (ví dụ hoàn đầy đủ trước hạn chót), trả lại chỗ trống
-          và phát sự kiện tương ứng.
-    \item \textbf{Lịch sử đặt chỗ từ sự kiện:} dùng \code{getPastEvents('SeatsBooked')} (đã có \code{customer} được \code{indexed}) để hiện danh sách đặt chỗ mà không cần lưu thêm dữ liệu trên chuỗi.
-    \item \textbf{Kiểm thử tự động:} viết unit test bằng Hardhat hoặc Foundry cho mọi nhánh \code{require}, và chạy trên mạng cục bộ trước khi triển khai Sepolia.
-    \item \textbf{Hoàn thiện triển khai:} cố định phiên bản web3.js trong \code{package.json}, triển khai giao diện lên dịch vụ lưu trữ tĩnh (Vercel/Netlify),
-          và xác minh mã nguồn hợp đồng trên Etherscan để người dùng đọc được mã.
+    \item \textbf{\code{withdraw()}:} Điều hành (\code{onlyOperator}) rút ETH về ví, có thể chỉ sau ngày khởi hành; theo mẫu
+          \emph{checks-effects-interactions} để tránh tấn công tái nhập (reentrancy).
+    \item \textbf{Nhiều tour theo \code{tourId}:} dùng \code{struct Tour \{ totalSeats; availableSeats; ticketPrice; departureTime; active; \}},
+          \code{mapping(uint256 => Tour)} và \code{mapping(uint256 => mapping(address => uint256))} cho số vé; hai hàm đọc nhận thêm tham số \code{tourId},
+          giao diện có danh sách tour để chọn.
+    \item \textbf{Hủy vé/hoàn tiền:} \code{cancelBooking(tourId, seats)} hoàn ETH theo chính sách (ví dụ trước hạn chót), trả lại chỗ trống và phát sự kiện.
+    \item \textbf{Lịch sử đặt chỗ từ sự kiện:} đọc \code{SeatsBooked} (đã có \code{customer} \code{indexed}) bằng \code{getPastEvents} thay vì lưu thêm dữ liệu.
+    \item \textbf{Kiểm thử tự động} bằng Hardhat hoặc Foundry cho mọi nhánh \code{require}; xác minh mã hợp đồng trên Etherscan; đưa giao diện lên Vercel/Netlify.
 \end{enumerate}

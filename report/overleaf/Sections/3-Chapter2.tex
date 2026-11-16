@@ -1,11 +1,10 @@
 \section{Kiến trúc hệ thống \& Công nghệ sử dụng}
 \label{sec:ch2}
 
-\subsection{Kiến trúc tổng thể của DApp}
+\subsection{Kiến trúc tổng thể}
 
-DApp (Decentralized Application) gồm hai phần: \textbf{giao diện (frontend)} chạy trên trình duyệt của người dùng
-và \textbf{smart contract} chạy trên blockchain. Không có máy chủ ứng dụng (backend) tập trung: logic nghiệp vụ và dữ liệu
-nằm hoàn toàn trong hợp đồng; frontend chỉ đọc dữ liệu và gửi giao dịch thông qua ví MetaMask.
+DApp gồm \textbf{frontend} chạy trên trình duyệt và \textbf{smart contract} chạy trên blockchain; không có máy chủ ứng dụng tập trung.
+Logic nghiệp vụ và dữ liệu nằm trong hợp đồng; frontend đọc dữ liệu và gửi giao dịch qua ví MetaMask.
 
 \begin{figure}[H]
 \centering
@@ -30,34 +29,27 @@ nằm hoàn toàn trong hợp đồng; frontend chỉ đọc dữ liệu và g�
 \draw[arr] (net) -- (sc) node[midway, num] {4};
 \draw[arr1] (remix) -- (sc) node[midway, num, below=1mm] {A};
 \draw[arr1] (user) -- (fe) node[midway, num] {1};
-\draw[arr1, dashed] (remix) -- (mm);
 \end{tikzpicture}
-\caption{Sơ đồ kiến trúc DApp: Frontend (React + Vite + web3.js) $\leftrightarrow$ MetaMask $\leftrightarrow$ Smart Contract (Solidity)}
+\caption{Kiến trúc DApp: Frontend (React + Vite + web3.js) $\leftrightarrow$ MetaMask $\leftrightarrow$ Smart Contract (Solidity)}
 \label{fig:arch}
 \end{figure}
 
-Luồng hoạt động chính (các số trong Hình~\ref{fig:arch}):
-
 \begin{enumerate}[leftmargin=1.8em]
-    \item Người dùng thao tác trên giao diện React (nhập số chỗ, nhấn \emph{Đặt chỗ}).
-    \item Frontend dùng \textbf{web3.js} tạo đối tượng \code{Contract} (từ \code{CONTRACT\_ADDRESS} và \code{CONTRACT\_ABI})
-          rồi gọi hàm; yêu cầu được chuyển cho \textbf{MetaMask} qua đối tượng \code{window.ethereum}. Với hàm ghi,
-          MetaMask hiện cửa sổ xác nhận (số ETH, phí gas) và \emph{ký} giao dịch bằng khóa riêng của ví.
-    \item Giao dịch đã ký được gửi tới một nút RPC của mạng \textbf{Sepolia Testnet}.
-    \item Mạng thực thi hàm của smart contract, cập nhật trạng thái và phát sự kiện; kết quả được đọc lại để cập nhật giao diện.
-    \item[A.] Trước đó, hợp đồng được viết, biên dịch và triển khai (deploy) lên Sepolia bằng \textbf{Remix IDE} kết hợp MetaMask
-          (chi tiết ở \ref{sec:ch5}).
+    \item Người dùng thao tác trên giao diện React.
+    \item web3.js tạo đối tượng \code{Contract} từ \code{CONTRACT\_ADDRESS} và \code{CONTRACT\_ABI}, gửi yêu cầu cho \textbf{MetaMask}
+          (\code{window.ethereum}). Với hàm ghi, MetaMask hiện cửa sổ xác nhận (số ETH, phí gas) và \emph{ký} giao dịch bằng khóa riêng.
+    \item Giao dịch đã ký được gửi tới nút RPC của \textbf{Sepolia Testnet}.
+    \item Mạng thực thi hợp đồng, cập nhật trạng thái; giao diện đọc lại để hiển thị.
+    \item[A.] Hợp đồng được biên dịch và triển khai bằng \textbf{Remix IDE} + MetaMask (Chương~\ref{sec:ch5}).
 \end{enumerate}
 
-Các hàm \emph{đọc} (\code{view}) như \code{getAvailableSeats()} không tốn phí gas và không cần ký; chỉ các hàm
-\emph{ghi} (\code{createTour()}, \code{bookSeats()}) mới tạo giao dịch.
+Hàm \emph{đọc} (\code{view}) không tốn gas và không cần ký; chỉ hàm \emph{ghi} (\code{createTour()}, \code{bookSeats()}) tạo giao dịch.
 
-\subsection{Phân vai trò theo ví}
+\subsection{Phân quyền hai lớp}
 
-Hợp đồng lưu địa chỉ ví điều hành (\code{operator = msg.sender} trong hàm khởi tạo). Giao diện đọc
-\code{operator()} từ chuỗi và so sánh với ví đang kết nối để quyết định hiển thị giao diện Điều hành hay Khách hàng
-(\ref{sec:ch3}). Việc phân quyền được kiểm tra ở \emph{hai lớp}: giao diện (trải nghiệm người dùng) và smart contract
-(bảo đảm an toàn, vì mọi người đều có thể gọi hợp đồng trực tiếp, không cần qua giao diện).
+Hợp đồng lưu \code{operator = msg.sender} khi khởi tạo. Giao diện so sánh ví đang kết nối với \code{operator()} để hiện giao diện
+Điều hành hay Khách hàng (Chương~\ref{sec:ch3}). Quyền được kiểm tra ở \emph{cả hai lớp}: giao diện (trải nghiệm) và smart contract
+(bảo đảm an toàn, vì ai cũng có thể gọi hợp đồng trực tiếp mà không qua giao diện).
 
 \subsection{Bảng công nghệ sử dụng}
 
@@ -68,29 +60,25 @@ Hợp đồng lưu địa chỉ ví điều hành (\code{operator = msg.sender} 
 \hline
 \rowcolor{navyblue}\textcolor{white}{\textbf{Lớp}} & \textcolor{white}{\textbf{Công nghệ / phiên bản}} & \textcolor{white}{\textbf{Vai trò}} \\
 \hline
-Giao diện & React \code{\^{}19.3.1} & Xây dựng giao diện theo component, quản lý trạng thái bằng hook (\code{useState}, \code{useEffect}). \\
+Giao diện & React \code{\^{}19.3.1} & Giao diện theo component, quản lý trạng thái bằng hook. \\
 \hline
 \rowcolor{rowgray}
-Công cụ build & Vite \code{\^{}8.3.6} \newline \code{@vitejs/plugin-react} \code{\^{}6.1.2} & Máy chủ phát triển (\code{npm run dev}) và đóng gói sản phẩm. \\
+Build & Vite \code{\^{}8.3.6} & Máy chủ phát triển (\code{npm run dev}) và đóng gói. \\
 \hline
-Thư viện Web3 & web3.js \code{\^{}4.16.0} & Kết nối ví, đọc số dư, gọi hàm đọc/ghi smart contract, đổi đơn vị wei $\leftrightarrow$ ETH. \\
-\hline
-\rowcolor{rowgray}
-Smart contract & Solidity \code{\^{}0.8.20} (biên dịch bằng \code{0.8.34+commit.80d5c536}) & Ngôn ngữ viết hợp đồng thông minh. Từ 0.8.x, phép toán số học tự động revert khi tràn số. \\
-\hline
-IDE & Remix IDE (2.6.14) & Soạn thảo, biên dịch, triển khai và thử gọi hàm hợp đồng ngay trên trình duyệt. \\
+Web3 & web3.js \code{\^{}4.16.0} & Kết nối ví, gọi hàm hợp đồng, đổi wei $\leftrightarrow$ ETH. \\
 \hline
 \rowcolor{rowgray}
-Ví & MetaMask (extension) & Quản lý tài khoản, ký giao dịch, trả phí gas, chọn mạng Sepolia. \\
+Smart contract & Solidity \code{\^{}0.8.20} (biên dịch \code{0.8.34}) & Viết hợp đồng; từ 0.8.x phép toán số học tự revert khi tràn số. \\
 \hline
-Mạng blockchain & Ethereum Sepolia Testnet (chainId 11155111) & Mạng thử nghiệm công khai, ETH test miễn phí (faucet). \\
+IDE & Remix IDE 2.6.14 & Biên dịch, deploy và thử gọi hàm trên trình duyệt. \\
 \hline
 \rowcolor{rowgray}
-Môi trường chạy & Node.js \code{v24.11.0}, npm \code{11.6.1} & Cài thư viện và chạy máy chủ phát triển Vite. \\
+Ví & MetaMask & Quản lý tài khoản, ký giao dịch, trả gas. \\
 \hline
-Kiểm tra mã & oxlint \code{\^{}1.90.0} & Kiểm tra lỗi và quy ước mã JavaScript/JSX. \\
+Mạng & Sepolia Testnet (chainId 11155111) & Mạng thử nghiệm công khai, ETH test miễn phí. \\
 \hline
-Trình khám phá & Sepolia Etherscan & Tra cứu giao dịch, địa chỉ hợp đồng và số dư. \\
+\rowcolor{rowgray}
+Môi trường chạy & Node.js \code{v24.11.0}, npm \code{11.6.1} & Cài thư viện, chạy Vite. \\
 \hline
 \end{tabularx}
 \end{table}
