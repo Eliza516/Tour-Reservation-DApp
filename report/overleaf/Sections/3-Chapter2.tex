@@ -40,7 +40,7 @@ Logic nghiệp vụ và dữ liệu nằm trong hợp đồng; frontend đọc d
           (\code{window.ethereum}). Với hàm ghi, MetaMask hiện cửa sổ xác nhận (số ETH, phí gas) và \emph{ký} giao dịch bằng khóa riêng.
     \item Giao dịch đã ký được gửi tới nút RPC của \textbf{Sepolia Testnet}.
     \item Mạng thực thi hợp đồng, cập nhật trạng thái; giao diện đọc lại để hiển thị.
-    \item[A.] Hợp đồng được biên dịch và triển khai bằng \textbf{Remix IDE} + MetaMask (Chương~\ref{sec:ch5}).
+    \item[A.] Hợp đồng được biên dịch và triển khai bằng \textbf{Remix IDE} + MetaMask (\ref{sec:ch5}).
 \end{enumerate}
 
 Hàm \emph{đọc} (\code{view}) không tốn gas và không cần ký; chỉ hàm \emph{ghi} (\code{createTour()}, \code{bookSeats()}) tạo giao dịch.
@@ -48,7 +48,7 @@ Hàm \emph{đọc} (\code{view}) không tốn gas và không cần ký; chỉ h�
 \subsection{Phân quyền hai lớp}
 
 Hợp đồng lưu \code{operator = msg.sender} khi khởi tạo. Giao diện so sánh ví đang kết nối với \code{operator()} để hiện giao diện
-Điều hành hay Khách hàng (Chương~\ref{sec:ch3}). Quyền được kiểm tra ở \emph{cả hai lớp}: giao diện (trải nghiệm) và smart contract
+Điều hành hay Khách hàng (\ref{sec:ch3}). Quyền được kiểm tra ở \emph{cả hai lớp}: giao diện (trải nghiệm) và smart contract
 (bảo đảm an toàn, vì ai cũng có thể gọi hợp đồng trực tiếp mà không qua giao diện).
 
 \subsection{Bảng công nghệ sử dụng}

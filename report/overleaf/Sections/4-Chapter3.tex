@@ -93,12 +93,12 @@ còn lại & Khách hàng & Form \emph{Đặt chỗ} (số chỗ, tổng tiền 
 
 \shot{cus_ui.png}{Giao diện Khách hàng: Account 2 được nhận diện là \emph{Khách hàng}, hiện form đặt chỗ}{0.9}
 
-Khi đổi tài khoản trong MetaMask, sự kiện \code{accountsChanged} (Chương~\ref{sec:ch4}) làm \code{isOperator} được tính lại và
+Khi đổi tài khoản trong MetaMask, sự kiện \code{accountsChanged} (\ref{sec:ch4}) làm \code{isOperator} được tính lại và
 giao diện chuyển chế độ mà không cần tải lại trang.
 
 \subsection{Kiểm tra dữ liệu đầu vào}
 
 Trước khi gửi giao dịch, giao diện kiểm tra: đã kết nối ví; số chỗ là số nguyên dương và không vượt \code{availableSeats}
 (ô nhập có \code{min}, \code{max=availableSeats}); giá vé $>0$; ví hiện tại là điều hành (với tạo tour). Việc này báo lỗi sớm và tránh tốn gas cho
-giao dịch chắc chắn thất bại; lớp bảo vệ cuối cùng vẫn là \code{require} trong hợp đồng (Chương~\ref{sec:ch5}).
+giao dịch chắc chắn thất bại; lớp bảo vệ cuối cùng vẫn là \code{require} trong hợp đồng (\ref{sec:ch5}).
 Nếu \code{CONTRACT\_ADDRESS} rỗng, ứng dụng chạy \emph{chế độ mô phỏng} (dữ liệu trong bộ nhớ, không gửi giao dịch).
